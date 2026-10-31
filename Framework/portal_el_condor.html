@@ -1,0 +1,1667 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Portal El Cóndor</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Young+Serif&display=swap">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>
+  // Tokens de color como canales RGB para que Tailwind pueda usar opacidades (bg-deep/60).
+  tailwind.config = {
+    future: { hoverOnlyWhenSupported: true },
+    theme: { extend: {
+      colors: Object.fromEntries(['bg','surface','ink','muted','sea','coral','sand','deep','tint1','tint2','tint3']
+        .map(k => [k, `rgb(var(--${k}) / <alpha-value>)`])),
+      fontFamily: {
+        display: ['"Young Serif"', 'Georgia', 'serif'],
+        sans: ['"Hanken Grotesk"', 'system-ui', 'sans-serif'],
+      },
+    } },
+  };
+</script>
+<style>
+  /* Concepto: el faro de 1887 marca la hora. Un selector de momento del día
+     (amanecer, mediodía, atardecer, noche) reescribe la escena entera: sol, mar,
+     acantilado con su colonia de loros y el haz del faro. */
+  :root {
+    --bg: 238 232 221;      /* arena */
+    --surface: 249 246 240;
+    --ink: 14 43 51;        /* océano profundo */
+    --muted: 72 94 100;
+    --sea: 22 92 104;
+    --coral: 228 104 76;    /* atardecer */
+    --tint1: 248 220 202;   /* durazno */
+    --tint2: 205 229 228;   /* bruma de mar */
+    --tint3: 238 226 178;   /* arena dorada */
+    --sand: 251 246 236;    /* constantes: texto sobre fondos oscuros */
+    --deep: 8 34 43;
+    --ease: cubic-bezier(.23, 1, .32, 1);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: 11 28 35; --surface: 17 40 49; --ink: 238 232 221; --muted: 158 180 184;
+      --sea: 126 196 204; --coral: 240 124 96; --tint1: 66 42 36; --tint2: 22 60 68; --tint3: 62 56 30;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: 11 28 35; --surface: 17 40 49; --ink: 238 232 221; --muted: 158 180 184;
+    --sea: 126 196 204; --coral: 240 124 96; --tint1: 66 42 36; --tint2: 22 60 68; --tint3: 62 56 30;
+    color-scheme: dark;
+  }
+
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: rgb(var(--bg)); color: rgb(var(--ink));
+    font: 400 1.0625rem/1.6 "Hanken Grotesk", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+  }
+  ::selection { background: rgb(var(--coral) / .35); }
+  :focus-visible { outline: 2px solid rgb(var(--coral)); outline-offset: 3px; border-radius: 6px; }
+  section[id] { scroll-margin-top: 4.5rem; }
+  h1, h2, h3 { text-wrap: balance; margin: 0; font-weight: 400; }
+  p { margin: 0; }
+
+  .gutter {
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .wrap { max-width: 80rem; margin-inline: auto; }
+
+  /* Botones: respuesta táctil inmediata */
+  .press { transition: transform 160ms var(--ease), background-color 160ms ease, color 160ms ease; }
+  .press:active { transform: scale(.97); }
+
+  /* Vidrio sutil: solo sobre la escena, donde realmente hay algo detrás */
+  .glass {
+    background: rgb(var(--sand) / .14);
+    -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2);
+    box-shadow: 0 18px 50px -18px rgb(0 0 0 / .45);
+  }
+
+  /* Escena ilustrada */
+  .drift { animation: drift 20s linear infinite; }
+  .cloud { animation: cloud 60s ease-in-out infinite alternate; }
+  .fly { animation: glide 18s linear infinite; opacity: 0; }
+  .wing { animation: flap .42s ease-in-out infinite alternate; transform-origin: 0 0; }
+  .twinkle { animation: twinkle 4s ease-in-out infinite; }
+  .beam { animation: sweep 9s ease-in-out infinite; transform-origin: 0 0; }
+  .sway { animation: sway 5s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 100%; }
+  @keyframes drift { to { transform: translateX(-400px); } }
+  @keyframes cloud { from { transform: translateX(-90px); } to { transform: translateX(120px); } }
+  @keyframes glide {
+    0% { transform: translate(0, 0); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; }
+    100% { transform: translate(-380px, -30px); opacity: 0; }
+  }
+  @keyframes flap { from { transform: scaleY(1); } to { transform: scaleY(-.45); } }
+  @keyframes twinkle { 50% { opacity: .25; } }
+  @keyframes sweep { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(-1); } }
+  @keyframes sway { from { transform: rotate(-4deg); } to { transform: rotate(4deg); } }
+
+  /* Tarjetas del directorio: la tinta de la categoría se expande desde el cursor */
+  .cat-reveal {
+    clip-path: circle(0px at var(--x, 50%) var(--y, 50%));
+    transition: clip-path 260ms var(--ease);
+  }
+  .cat-mark { transition: transform 600ms var(--ease), opacity 300ms ease; }
+  .cat-go { transition: transform 300ms var(--ease), background-color 200ms ease, color 200ms ease; }
+  @media (hover: hover) and (pointer: fine) {
+    .cat:hover .cat-reveal { clip-path: circle(150% at var(--x, 50%) var(--y, 50%)); transition-duration: 700ms; }
+    .cat:hover .cat-mark { transform: translate(-14px, -10px) rotate(-8deg) scale(1.06); opacity: .3; }
+    .cat:hover .cat-go { background: rgb(var(--coral)); color: #0E2B33; transform: rotate(45deg); }
+    .cat:hover .cat-lift { opacity: 1; }
+    .news:hover .news-art { transform: scale(1.04); }
+    .news:hover .news-go { transform: translate(3px, -3px); }
+  }
+  .cat-lift { opacity: 0; transition: opacity 300ms ease; }
+  .news-art { transition: transform 900ms var(--ease); }
+  .news-go { transition: transform 260ms var(--ease); }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .drift, .cloud, .fly, .wing, .twinkle, .beam, .sway { animation: none; }
+    .fly { opacity: 1; }
+    .cat-reveal, .cat-mark, .cat-go, .news-art, .news-go { transition: none; }
+  }
+</style>
+
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/framer-motion@10.18.0/dist/framer-motion.js"></script>
+<script>window.react = window.React; // el UMD de lucide-react busca el global en minúscula</script>
+<script src="https://cdn.jsdelivr.net/npm/lucide-react@0.263.1/dist/umd/lucide-react.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+const { motion, AnimatePresence, MotionConfig, useMotionValue, useSpring, useTransform } = Motion;
+const I = LucideReact;
+
+const OUT = [0.23, 1, 0.32, 1];                              // ease-out fuerte para UI
+const SPRING = { type: 'spring', duration: 0.5, bounce: 0.18 };
+const SCENE = { type: 'spring', duration: 1.5, bounce: 0 };  // cambio de hora: ambiental, más lento
+const WHATSAPP = '5492920123456';                            // número de ejemplo
+
+const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const go = (e, id) => {
+  e.preventDefault();
+  document.getElementById(id)?.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth' });
+};
+function useMedia(q) {
+  const [m, setM] = useState(() => window.matchMedia(q).matches);
+  useEffect(() => {
+    const mq = window.matchMedia(q), f = () => setM(mq.matches);
+    mq.addEventListener('change', f);
+    return () => mq.removeEventListener('change', f);
+  }, [q]);
+  return m;
+}
+
+/* ───────────────────────── Datos ───────────────────────── */
+
+const MOMENTS = [
+  { id: 'amanecer', label: 'Amanecer', Icon: I.Sunrise,
+    text: 'El sol sale directo del mar y la colonia empieza a moverse.',
+    sky: ['#2F4A6E', '#D98A7C', '#F8C99A'], sea: ['#E0A07F', '#2C5B72'], sand: '#CDB08E', foam: '#FFF1E0',
+    cliff: ['#C47E58', '#7A432B'], tower: '#FBEBD8', lantern: '#2C3E45', veg: '#6D7340',
+    stars: 0, cloud: 0.75, cloudC: '#F3B79C', sun: { c: '#FFE3B0', r: 54, y: 536 }, glow: '#FFC48A', glowO: 0.9,
+    beam: 0, birds: 0.9, refl: { c: '#FFD9A0', o: 0.8 } },
+  { id: 'mediodia', label: 'Mediodía', Icon: I.Sun,
+    text: 'Con la marea baja la playa se ensancha. Buen momento para caminar la costa.',
+    sky: ['#2A7DB0', '#6DB6D8', '#C9E9EF'], sea: ['#58B2C4', '#12627A'], sand: '#EAD3A8', foam: '#FFFFFF',
+    cliff: ['#D69A68', '#8F5B3B'], tower: '#FFFFFF', lantern: '#2C3E45', veg: '#7C8444',
+    stars: 0, cloud: 0.85, cloudC: '#FFFFFF', sun: { c: '#FFF8DC', r: 50, y: 150 }, glow: '#FFFFFF', glowO: 0.45,
+    beam: 0, birds: 0.7, refl: { c: '#FFFFFF', o: 0.5 } },
+  { id: 'atardecer', label: 'Atardecer', Icon: I.Sunset,
+    text: 'La luz se pone naranja sobre los acantilados y los loros vuelven a sus nidos.',
+    sky: ['#3A3E72', '#D5587B', '#F7A458'], sea: ['#E08A5E', '#233F5B'], sand: '#BE8564', foam: '#FFD9C0',
+    cliff: ['#E5814F', '#8A3E2B'], tower: '#FFE7D2', lantern: '#2C3E45', veg: '#7A6A38',
+    stars: 0, cloud: 0.8, cloudC: '#F58D88', sun: { c: '#FFB067', r: 54, y: 640 }, glow: '#FFB06A', glowO: 0.95,
+    beam: 0, birds: 1, refl: { c: '#FFC07A', o: 0.7 } },
+  { id: 'noche', label: 'Noche', Icon: I.Moon,
+    text: 'El faro, inaugurado en 1887, vuelve a barrer la costa con su luz.',
+    sky: ['#050E1A', '#0E2538', '#1C4559'], sea: ['#16384B', '#06151F'], sand: '#2A3441', foam: '#8FB4C4',
+    cliff: ['#3B3A44', '#17171E'], tower: '#9CA6B8', lantern: '#FFEBA8', veg: '#2C3328',
+    stars: 1, cloud: 0.35, cloudC: '#2B4458', sun: { c: '#F3EFDC', r: 32, y: 165 }, glow: '#9DC4DA', glowO: 0.35,
+    beam: 0.6, birds: 0, refl: { c: '#CFE3EA', o: 0.4 } },
+];
+// Posición horizontal del astro: en móvil el encuadre es más angosto.
+const SUN_X = { amanecer: [660, 860], mediodia: [1000, 1040], atardecer: [640, 860], noche: [900, 1060] };
+
+const CATS = [
+  { id: 'gastronomia', title: 'Gastronomía', Icon: I.UtensilsCrossed, tint: 'tint1',
+    blurb: 'Pescado del día, mariscos y parrilla con vista al mar.',
+    bullets: ['Pescados y mariscos', 'Parrillas y cordero', 'Panaderías y cafés'],
+    spots: [
+      ['La Caleta', 'Pescado del día y mariscos', 'Todos los días, 12 a 23 h'],
+      ['Fogón del Faro', 'Parrilla y cordero patagónico', 'Jueves a domingo'],
+      ['Panadería Doña Rosa', 'Medialunas y pan casero', 'De 7 a 13 h'],
+      ['Kiosco Mirador', 'Café y sándwiches frente a la playa', 'Temporada de verano'],
+    ] },
+  { id: 'hospedaje', title: 'Hospedaje', Icon: I.BedDouble, tint: 'tint2',
+    blurb: 'Cabañas, hosterías y camping a pasos de la playa.',
+    bullets: ['Cabañas y departamentos', 'Hosterías', 'Camping organizado'],
+    spots: [
+      ['Cabañas Los Barrancos', 'Para 2 a 6 personas, a dos cuadras del mar', 'Todo el año'],
+      ['Hostería Brisa Marina', 'Desayuno incluido y vista a la costa', 'Todo el año'],
+      ['Camping El Médano', 'Parcelas con sombra y proveeduría', 'Octubre a abril'],
+      ['Departamentos Vista Faro', 'Con cocina y cochera', 'Todo el año'],
+    ] },
+  { id: 'excursiones', title: 'Excursiones', Icon: I.Compass, tint: 'tint3',
+    blurb: 'Faro, colonia de loros, pesca y caminatas por la costa.',
+    bullets: ['Visita al faro', 'Avistaje de loros barranqueros', 'Pesca y kitesurf'],
+    spots: [
+      ['Visita al faro', 'Recorrido y vistas de toda la costa', 'Consultar horarios'],
+      ['Avistaje de loros', 'Mirador habilitado de la colonia', 'Mejor al amanecer y atardecer'],
+      ['Pesca costera', 'Salidas con guías locales', 'Según marea'],
+      ['Kitesurf y carrovelismo', 'Escuelas y alquiler de equipo', 'Temporada de verano'],
+    ] },
+];
+
+/* ───────────────────────── Contenido editable (lo gestiona el panel de la Junta) ───────────────────────── */
+
+const CALETA_PHOTOS = [
+  { art: 'caletaFachada', cap: 'Fachada sobre la bajada a la playa' },
+  { art: 'caletaSalon', cap: 'El salón, con vista al mar' },
+  { art: 'caletaPlato', cap: 'Plato del día: lenguado con limón' },
+  { art: 'caletaTerraza', cap: 'La terraza al atardecer' },
+];
+// Una foto puede ser ilustrada ({ art }) o subida desde el panel ({ src }).
+const withPhotos = (name, photos, about) => (v) => (v.name === name ? { ...v, photos, about } : v);
+const VENUES_SEED = CATS
+  .flatMap(c => c.spots.map(([name, what, when], i) => ({ id: `${c.id}-${i}`, cat: c.id, name, what, when, photos: [] })))
+  .map(withPhotos('La Caleta', CALETA_PHOTOS, 'Cocina de mar a pasos de la playa. Pescado del día, mariscos y una carta corta que cambia con la marea. Conviene reservar los fines de semana.'))
+  .map(withPhotos('Cabañas Los Barrancos', [{ art: 'cabanas', cap: 'Cabañas entre las dunas' }], 'Cabañas para 2 a 6 personas con parrilla propia, a dos cuadras del mar.'))
+  .map(withPhotos('Avistaje de loros', [{ art: 'loros', cap: 'La colonia desde el mirador' }], 'Mirador habilitado frente a los barrancos. Los loros salen temprano y vuelven al caer la tarde.'));
+
+const NEWS_SEED = [
+  { id: 'n1', kind: 'Evento', date: '13 al 15 de noviembre', title: 'Se acerca el Festival del Viento',
+    body: 'Tres días de kitesurf, parapente y carrovelismo en nuestras playas, con feria de artesanos y gastronomía local.', photo: { art: 'kites' } },
+  { id: 'n2', kind: 'Comunidad', date: 'Sábado 7 de noviembre', title: 'Jornada de limpieza costera',
+    body: 'Vecinos y visitantes nos juntamos a las 9 h en el acceso a la playa. Ponemos bolsas y guantes.' },
+  { id: 'n3', kind: 'Comunidad', date: 'Ya habilitado', title: 'Nuevo mirador de loros',
+    body: 'Un punto panorámico para observar la colonia sin molestar a las aves.' },
+  { id: 'n4', kind: 'Aviso', date: 'Jueves 5 de noviembre, 19 h', title: 'Reunión abierta de la Junta',
+    body: 'Se tratan la temporada de verano, la iluminación de la costanera y el servicio de guardavidas. Podés sumar tu tema.' },
+];
+
+const GAL = [
+  ['playa', 'Marea baja en la playa', '4 / 5'], ['faro', 'El faro de 1887', '3 / 4'], ['loros', 'La colonia de loros', '1 / 1'],
+  ['atardecer', 'Atardecer sobre la costa', '4 / 3'], ['kites', 'Tarde de viento', '3 / 2'], ['pesca', 'Salida de pesca', '1 / 1'],
+  ['cabanas', 'Cabañas entre las dunas', '4 / 3'], ['noche', 'Noche de faro', '3 / 4'], ['dunas', 'Dunas y estepa', '4 / 5'],
+].map(([art, cap, ratio]) => ({ art, cap, ratio }));
+
+/* ───────────────────────── Escena ilustrada ───────────────────────── */
+
+const prng = (seed) => () => {
+  seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+  let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+};
+
+const HORIZON = 560;
+const CREST = [[860, 770], [900, 690], [950, 600], [1000, 520], [1060, 462], [1130, 422], [1200, 400], [1260, 390],
+  [1340, 382], [1460, 374], [1580, 368], [1720, 362]];
+const topAt = (x) => {
+  for (let i = 1; i < CREST.length; i++) if (x <= CREST[i][0]) {
+    const [x0, y0] = CREST[i - 1], [x1, y1] = CREST[i];
+    return y0 + ((y1 - y0) * (x - x0)) / (x1 - x0);
+  }
+  return 362;
+};
+const GEO = (() => {
+  const r = prng(11), pts = [];
+  for (let x = 860; x <= 1720; x += 20) pts.push([x, topAt(x) + (x > 1000 ? (r() - 0.5) * 9 : 0)]);
+  const crest = 'M' + pts.map(p => p.join(' ')).join(' L');
+  const holes = [];
+  for (let i = 0; i < 150; i++) {
+    const x = 930 + r() * 800, y = topAt(x) + 62 + Math.floor(r() * 5) * 44 + (r() - 0.5) * 16;
+    if (y < 748) holes.push({ x, y, rx: 3.6 + r() * 4.6, ry: 2.6 + r() * 3 });
+  }
+  const stars = Array.from({ length: 46 }, () => ({ x: -40 + r() * 1680, y: 16 + r() * 400, r: 0.8 + r() * 1.1, t: r() < 0.3 }));
+  return { crest, holes, stars, cliffD: crest + ' L1720 840 L860 840 Z' };
+})();
+const waveD = (amp, len, n) => `M0 0${` q${len / 4} ${-amp} ${len / 2} 0 t${len / 2} 0`.repeat(n)} V400 H0Z`;
+const BIRDS = [[1180, 470, 1.5, 17, 0], [1000, 400, 1.2, 21, 6], [1400, 520, 1.7, 15, 3], [1280, 600, 1.3, 19, 9],
+  [1110, 560, 1.1, 23, 12], [1520, 430, 1.4, 16, 5], [1060, 330, 1, 25, 2], [1340, 340, 1.2, 20, 11]];
+
+function Stop({ o, c, i }) {
+  return <motion.stop offset={o} initial={false} animate={{ stopColor: c }} transition={SCENE} stopOpacity={i} />;
+}
+const fill = (c) => ({ initial: false, animate: { fill: c }, transition: SCENE });
+
+function Scene({ m, narrow, far, near }) {
+  const sx = SUN_X[m.id][narrow ? 1 : 0];
+  const astro = { cx: sx, cy: m.sun.y, r: m.sun.r };
+  return (
+    <svg viewBox={narrow ? '688 0 800 900' : '0 0 1600 900'} preserveAspectRatio="xMidYMid slice"
+      className="absolute inset-0 h-full w-full" aria-hidden="true" focusable="false">
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+          <Stop o="0" c={m.sky[0]} /><Stop o=".62" c={m.sky[1]} /><Stop o="1" c={m.sky[2]} />
+        </linearGradient>
+        <linearGradient id="seaG" x1="0" y1="0" x2="0" y2="1"><Stop o="0" c={m.sea[0]} /><Stop o=".5" c={m.sea[1]} /><Stop o="1" c={m.sea[1]} /></linearGradient>
+        <radialGradient id="glowG"><Stop o="0" c={m.glow} i="1" /><Stop o="1" c={m.glow} i="0" /></radialGradient>
+        <linearGradient id="shadeG" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#000" stopOpacity="0" /><stop offset="1" stopColor="#000" stopOpacity=".34" />
+        </linearGradient>
+        <linearGradient id="beamG" x1="1" y1="0" x2="0" y2="0">
+          <stop offset="0" stopColor="#FFF0BE" stopOpacity=".85" /><stop offset="1" stopColor="#FFF0BE" stopOpacity="0" />
+        </linearGradient>
+        <radialGradient id="lampG"><stop offset="0" stopColor="#FFEFB8" stopOpacity=".95" /><stop offset="1" stopColor="#FFEFB8" stopOpacity="0" /></radialGradient>
+        <clipPath id="cliffClip"><path d={GEO.cliffD} /></clipPath>
+      </defs>
+
+      {/* Cielo y astros: capa lejana */}
+      <motion.g style={{ x: far }}>
+        <rect x="-100" y="-20" width="1800" height={HORIZON + 40} fill="url(#sky)" />
+        <motion.g initial={false} animate={{ opacity: m.stars }} transition={SCENE}>
+          {GEO.stars.map((s, i) => <circle key={i} cx={s.x} cy={s.y} r={s.r} fill="#FFF" className={s.t ? 'twinkle' : ''} style={s.t ? { animationDelay: `${(i % 7) * 0.6}s` } : undefined} />)}
+        </motion.g>
+        <motion.circle r="420" fill="url(#glowG)" initial={false} animate={{ cx: astro.cx, cy: astro.cy, opacity: m.glowO }} transition={SCENE} />
+        <motion.circle initial={false} animate={{ ...astro, fill: m.sun.c }} transition={SCENE} />
+        <motion.g initial={false} animate={{ opacity: m.cloud, fill: m.cloudC }} transition={SCENE}>
+          <g className="cloud"><ellipse cx="380" cy="170" rx="190" ry="20" /><ellipse cx="470" cy="154" rx="110" ry="19" /><ellipse cx="1130" cy="250" rx="150" ry="14" /></g>
+          <g className="cloud" style={{ animationDuration: '85s', animationDirection: 'alternate-reverse' }}><ellipse cx="860" cy="118" rx="200" ry="16" /><ellipse cx="940" cy="106" rx="100" ry="14" /><ellipse cx="180" cy="320" rx="150" ry="12" /></g>
+        </motion.g>
+      </motion.g>
+
+      {/* Mar */}
+      <rect x="-100" y={HORIZON} width="1800" height="400" fill="url(#seaG)" />
+      <motion.g initial={false} animate={{ x: sx, opacity: m.refl.o }} transition={SCENE} fill={m.refl.c}>
+        {[[230, 574], [180, 592], [140, 614], [104, 640], [76, 672], [54, 712], [38, 758]].map(([w, y], i) =>
+          <rect key={i} x={-w / 2} y={y} width={w} height="5" rx="2.5" />)}
+      </motion.g>
+      {[[585, 5, 260, 0.16, 26], [640, 8, 380, 0.14, 20], [700, 11, 480, 0.13, 16]].map(([y, a, l, o, d], i) =>
+        <g key={i} transform={`translate(-400 ${y})`}>
+          <motion.path d={waveD(a, l, Math.ceil(3200 / l))} className="drift" style={{ animationDuration: `${d}s` }} opacity={o} {...fill(m.foam)} />
+        </g>)}
+
+      {/* Acantilado y faro: capa cercana */}
+      <motion.g style={{ x: near }}>
+        <motion.path d={GEO.cliffD} {...fill(m.cliff[0])} />
+        <g clipPath="url(#cliffClip)">
+          {[440, 520, 590, 660, 720].map((y, i) =>
+            <motion.path key={y} d={`M820 ${y} q120 ${i % 2 ? 9 : -9} 240 0 t240 0 t240 0 t240 0 t240 0 V${y + 26 + i * 6} H820Z`} opacity={0.13 + i * 0.03} {...fill(m.cliff[1])} />)}
+          <rect x="820" y="380" width="920" height="460" fill="url(#shadeG)" />
+          <g fill="#24140D" opacity=".7">{GEO.holes.map((h, i) => <ellipse key={i} cx={h.x} cy={h.y} rx={h.rx} ry={h.ry} />)}</g>
+        </g>
+        <motion.path d={GEO.crest} fill="none" strokeWidth="14" strokeLinecap="round" strokeLinejoin="round" initial={false} animate={{ stroke: m.veg }} transition={SCENE} />
+
+        <g transform="translate(1250 388)">
+          <g transform="translate(0 -167)">
+            <g className="beam"><path d="M0 0 L-1300 -80 L-1300 80Z" fill="url(#beamG)" opacity={m.beam} style={{ transition: 'opacity 1.4s ease' }} /></g>
+            <circle r="46" fill="url(#lampG)" opacity={m.beam ? 1 : 0} style={{ transition: 'opacity 1.4s ease' }} />
+          </g>
+          <motion.path d="M-15 0 L-9 -150 L9 -150 L15 0Z" {...fill(m.tower)} />
+          <path d="M-12.04 -74 L-11.32 -92 L11.32 -92 L12.04 -74Z" fill="#E4684C" />
+          <rect x="-14" y="-158" width="28" height="6" rx="1.5" fill="#1B2A30" />
+          <motion.rect x="-8" y="-176" width="16" height="18" {...fill(m.lantern)} />
+          <path d="M-11 -176 L0 -192 L11 -176Z" fill="#1B2A30" />
+          <rect x="-3" y="-14" width="6" height="14" rx="3" fill="#1B2A30" opacity=".7" />
+        </g>
+
+        <motion.g initial={false} animate={{ opacity: m.birds }} transition={SCENE} fill="#68792D">
+          {BIRDS.map(([x, y, s, d, delay], i) =>
+            <g key={i} transform={`translate(${x} ${y}) scale(${s})`}>
+              <g className="fly" style={{ animationDuration: `${d}s`, animationDelay: `-${delay}s` }}>
+                <ellipse rx="7" ry="2.6" /><circle cx="-7.5" cy="-.5" r="2.2" /><path d="M6 0 L14 2 L6 2.4Z" />
+                <circle cx="1" cy="1.2" r="1.5" fill="#E9A23B" />
+                <path className="wing" d="M-1 0 Q3 -13 14 -17 Q8 -7 5 0Z" />
+              </g>
+            </g>)}
+        </motion.g>
+      </motion.g>
+
+      {/* Primer plano: ola que lame el pie del acantilado y la arena */}
+      <g transform="translate(-400 772)"><motion.path d={waveD(14, 560, 6)} className="drift" style={{ animationDuration: '14s' }} opacity=".5" {...fill(m.sea[1])} /></g>
+      <motion.path d="M-100 856 C 200 826 500 866 760 846 S 1160 880 1700 862 L1700 960 L-100 960Z" {...fill(m.sand)} />
+      <motion.path d="M-100 856 C 200 826 500 866 760 846 S 1160 880 1700 862" fill="none" strokeWidth="5" strokeLinecap="round" opacity=".75" initial={false} animate={{ stroke: m.foam }} transition={SCENE} />
+    </svg>
+  );
+}
+
+/* ───────────────────────── Piezas de UI ───────────────────────── */
+
+function Reveal({ children, className = '', delay = 0, as = 'div' }) {
+  const Tag = motion[as];
+  return (
+    <Tag className={className} initial={{ opacity: 0, y: 22 }} whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-60px' }} transition={{ duration: 0.6, ease: OUT, delay }}>
+      {children}
+    </Tag>
+  );
+}
+
+function TimeSwitch({ value, onChange }) {
+  const current = MOMENTS.find(m => m.id === value);
+  return (
+    <div className="flex max-w-full flex-col gap-3 md:items-end">
+      <div role="group" aria-label="Momento del día" className="glass inline-flex max-w-full rounded-full p-1">
+        {MOMENTS.map(m => {
+          const on = m.id === value;
+          return (
+            <button key={m.id} type="button" aria-pressed={on} onClick={() => onChange(m.id)}
+              className={`press relative flex min-h-[44px] items-center gap-2 rounded-full px-3 text-[0.8125rem] font-semibold sm:px-4 sm:text-[0.9375rem] ${on ? 'text-deep' : 'text-sand hover:text-white'}`}>
+              {on && <motion.span layoutId="moment-pill" className="absolute inset-0 rounded-full bg-sand" transition={SPRING} />}
+              <span className="relative hidden sm:block"><m.Icon size={17} strokeWidth={2} /></span>
+              <span className="relative">{m.label}</span>
+            </button>
+          );
+        })}
+      </div>
+      <div className="min-h-[3.25rem] max-w-[22rem] md:text-right" aria-live="polite">
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.p key={value} className="text-[0.9375rem] leading-snug text-sand/90"
+            initial={{ opacity: 0, y: 6, filter: 'blur(3px)' }} animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, y: -6, filter: 'blur(3px)' }} transition={{ duration: 0.2, ease: OUT }}>
+            {current.text}
+          </motion.p>
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}
+
+function Logo({ className = '' }) {
+  return (
+    <span className={`inline-flex items-center gap-2.5 ${className}`}>
+      <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true">
+        <path d="M9 24 L11 8 H15 L17 24Z" fill="currentColor" />
+        <rect x="10" y="3" width="6" height="5" rx="1" fill="rgb(var(--coral))" />
+        <path d="M2 11 L9 9 V6Z M24 11 L17 9 V6Z" fill="currentColor" opacity=".45" />
+      </svg>
+      <span className="font-display text-[1.375rem] leading-none">El Cóndor</span>
+    </span>
+  );
+}
+
+const NAV = [['La villa', 'villa'], ['Directorio', 'directorio'], ['Galería', 'galeria'], ['Novedades', 'novedades'], ['Contacto', 'contacto']];
+
+function Header({ scrolled }) {
+  const [open, setOpen] = useState(false);
+  const solid = scrolled || open;
+  const link = 'press rounded-full px-4 py-2.5 text-[0.9375rem] font-medium opacity-90 hover:opacity-100';
+  return (
+    <header className={`fixed inset-x-0 top-0 z-40 transition-colors duration-200 ${solid ? 'bg-bg text-ink' : 'text-sand'}`}
+      style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+      <div className="gutter">
+        <div className="wrap flex h-[4.25rem] items-center justify-between">
+          <a href="#inicio" onClick={e => go(e, 'inicio')} aria-label="El Cóndor, inicio"><Logo /></a>
+          <nav aria-label="Principal" className="hidden items-center gap-1 md:flex">
+            {NAV.map(([t, id]) => <a key={id} href={`#${id}`} onClick={e => go(e, id)} className={link}>{t}</a>)}
+            <a href={`https://wa.me/${WHATSAPP}`} target="_blank" rel="noreferrer"
+              className="press ml-3 inline-flex min-h-[44px] items-center gap-2 rounded-full bg-coral px-5 text-[0.9375rem] font-semibold text-[#0E2B33] hover:brightness-105">
+              <I.MessageCircle size={17} /> WhatsApp
+            </a>
+          </nav>
+          <button type="button" className="press -mr-2 grid h-11 w-11 place-items-center rounded-full md:hidden"
+            aria-expanded={open} aria-controls="menu-movil" aria-label={open ? 'Cerrar menú' : 'Abrir menú'} onClick={() => setOpen(o => !o)}>
+            {open ? <I.X size={24} /> : <I.Menu size={24} />}
+          </button>
+        </div>
+      </div>
+      <AnimatePresence>
+        {open && (
+          <motion.nav id="menu-movil" aria-label="Principal móvil" className="gutter overflow-hidden bg-bg text-ink md:hidden"
+            initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8, transition: { duration: 0.15 } }}
+            transition={{ duration: 0.22, ease: OUT }}>
+            <ul className="flex list-none flex-col gap-1 p-0 pb-6 pt-2">
+              {NAV.map(([t, id], i) => (
+                <motion.li key={id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.04 * i, duration: 0.3, ease: OUT }}>
+                  <a href={`#${id}`} onClick={e => { setOpen(false); go(e, id); }} className="block py-2.5 font-display text-[1.75rem]">{t}</a>
+                </motion.li>
+              ))}
+            </ul>
+          </motion.nav>
+        )}
+      </AnimatePresence>
+    </header>
+  );
+}
+
+/* ───────────────────────── Secciones ───────────────────────── */
+
+function Hero({ momentId, setMoment }) {
+  const m = MOMENTS.find(x => x.id === momentId);
+  const narrow = useMedia('(max-width: 767px)');
+  const mx = useMotionValue(0);
+  const sm = useSpring(mx, { stiffness: 60, damping: 18 });   // parallax decorativo: con resorte, no directo
+  const far = useTransform(sm, v => v * -10), near = useTransform(sm, v => v * 16);
+  const rise = (i) => ({ initial: { opacity: 0, y: 24 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.7, ease: OUT, delay: 0.08 + i * 0.09 } });
+
+  return (
+    <section id="inicio" className="relative isolate overflow-hidden bg-deep text-sand"
+      onPointerMove={e => { if (e.pointerType === 'mouse') mx.set(e.clientX / window.innerWidth - 0.5); }}>
+      <div className="absolute inset-x-0 top-0 h-[min(62svh,34rem)] md:inset-0 md:h-auto">
+        <Scene m={m} narrow={narrow} far={far} near={near} />
+      </div>
+      <div className="absolute inset-0 hidden md:block" style={{ background:
+        'linear-gradient(to bottom, rgba(4,24,32,.42), transparent 22%), linear-gradient(to top, rgba(4,24,32,.7), rgba(4,24,32,.22) 40%, transparent 64%), linear-gradient(to right, rgba(4,24,32,.4), transparent 52%)' }} />
+      <div className="absolute inset-x-0 top-0 h-28 md:hidden" style={{ background: 'linear-gradient(to bottom, rgba(4,24,32,.5), transparent)' }} />
+      <div className="absolute inset-x-0 top-[calc(min(62svh,34rem)-9rem)] h-36 bg-gradient-to-b from-transparent to-deep md:hidden" />
+
+      <div className="gutter relative">
+        <div className="wrap relative flex flex-col gap-10 pb-12 pt-[min(52svh,27rem)] md:min-h-[min(54rem,100svh)] md:flex-row md:items-end md:justify-between md:pb-14 md:pt-40">
+          <div className="md:max-w-[52rem]">
+            <motion.h1 {...rise(0)} className="max-w-[22ch] font-display text-[clamp(2.1rem,6vw,5.5rem)] leading-[1.02] tracking-[-0.02em]">
+              Mar, acantilados y miles de loros
+            </motion.h1>
+            <motion.p {...rise(1)} className="mt-6 max-w-[44ch] text-[clamp(1.05rem,1.4vw,1.25rem)] leading-relaxed text-sand/90">
+              El Cóndor es una villa balnearia de Río Negro, a 30 km de Viedma. Tiene un faro de 1887, playa abierta y la colonia de loros barranqueros más grande del mundo.
+            </motion.p>
+            <motion.div {...rise(2)} className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-4">
+              <a href="#directorio" onClick={e => go(e, 'directorio')}
+                className="press group inline-flex min-h-[52px] items-center gap-2.5 rounded-full bg-coral px-7 text-[1.0625rem] font-semibold text-[#0E2B33] hover:brightness-105">
+                Explorá la villa <I.ArrowRight size={19} className="transition-transform duration-300 group-hover:translate-x-1" />
+              </a>
+              <a href="#novedades" onClick={e => go(e, 'novedades')} className="press rounded-full py-3 font-semibold underline decoration-sand/40 decoration-2 underline-offset-[6px] hover:decoration-sand">
+                Ver novedades
+              </a>
+            </motion.div>
+          </div>
+          <motion.div {...rise(3)}><TimeSwitch value={momentId} onChange={setMoment} /></motion.div>
+          <motion.div {...rise(4)} className="md:absolute md:left-0 md:top-24"><Conditions /></motion.div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Intro() {
+  const facts = [['30 km', 'de Viedma por la Ruta Provincial 1'], ['1887', 'el año del faro, el más antiguo de la costa patagónica'], ['Sep a mar', 'temporada de la colonia de loros barranqueros']];
+  return (
+    <section id="villa" className="py-24 md:py-40">
+      <div className="gutter">
+        <div className="wrap grid items-start gap-14 md:grid-cols-12 md:gap-10">
+          <Reveal className="md:col-span-7">
+            <p className="font-display text-[clamp(1.5rem,2.4vw,2.25rem)] leading-[1.28] text-ink">
+              Un faro de 1887, una playa que se abre con la marea y un acantilado donde anidan miles de loros. Eso es El Cóndor.
+            </p>
+          </Reveal>
+          <ul className="m-0 flex list-none flex-col gap-8 p-0 md:col-span-4 md:col-start-9">
+            {facts.map(([n, t], i) => (
+              <Reveal as="li" key={n} delay={0.08 * i} className="flex flex-col gap-2">
+                <span className="font-display text-[clamp(2.2rem,3.6vw,3.1rem)] leading-none text-sea">{n}</span>
+                <span className="max-w-[34ch] text-[1.0625rem] text-muted">{t}</span>
+              </Reveal>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CatCard({ cat, i, onOpen }) {
+  const ref = useRef(null);
+  const aim = (e) => {   // la tinta nace donde entra el cursor
+    const r = ref.current.getBoundingClientRect();
+    ref.current.style.setProperty('--x', `${e.clientX - r.left}px`);
+    ref.current.style.setProperty('--y', `${e.clientY - r.top}px`);
+  };
+  return (
+    <Reveal delay={0.1 * i} className={i === 1 ? 'md:mt-14' : ''}>
+      <motion.article ref={ref} onPointerEnter={aim} whileHover={{ y: -8 }} whileTap={{ scale: 0.985 }} transition={SPRING}
+        className="cat group relative isolate flex min-h-[27rem] flex-col justify-between overflow-hidden rounded-[2rem] bg-surface p-8 sm:p-9">
+        <span aria-hidden="true" className="cat-lift pointer-events-none absolute inset-0 -z-20 rounded-[2rem] shadow-[0_34px_70px_-24px_rgb(14_43_51/.35)]" />
+        <span aria-hidden="true" className="cat-reveal absolute inset-0 -z-10" style={{ background: `rgb(var(--${cat.tint}))` }} />
+        <cat.Icon aria-hidden="true" strokeWidth={0.9} size={250} className="cat-mark pointer-events-none absolute -bottom-10 -right-10 -z-[5] text-ink opacity-[0.09]" />
+        <div>
+          <h3 className="font-display text-[2.25rem] leading-none text-ink">{cat.title}</h3>
+          <p className="mt-5 max-w-[26ch] text-[1.0625rem] text-muted">{cat.blurb}</p>
+          <ul className="m-0 mt-8 flex list-none flex-col gap-2.5 p-0">
+            {cat.bullets.map(b => <li key={b} className="flex items-center gap-3 text-[1rem] text-ink"><I.Waves size={16} className="shrink-0 text-sea" aria-hidden="true" />{b}</li>)}
+          </ul>
+        </div>
+        <div className="mt-10 flex items-center gap-4">
+          <span className="cat-go grid h-12 w-12 place-items-center rounded-full bg-ink text-bg" aria-hidden="true"><I.ArrowUpRight size={20} /></span>
+          <button type="button" onClick={() => onOpen(cat)} aria-haspopup="dialog"
+            className="font-semibold text-ink after:absolute after:inset-0 after:content-['']">
+            Ver {cat.title.toLowerCase()}
+          </button>
+        </div>
+      </motion.article>
+    </Reveal>
+  );
+}
+
+function Directory({ onOpen }) {
+  return (
+    <section id="directorio" className="pb-28 md:pb-44">
+      <div className="gutter">
+        <div className="wrap">
+          <div className="grid items-end gap-6 md:grid-cols-12 md:gap-10">
+            <Reveal className="md:col-span-7"><h2 className="font-display text-[clamp(2.2rem,4.6vw,4rem)] leading-[1.04] tracking-[-0.015em]">Todo lo que ofrece la villa</h2></Reveal>
+            <Reveal delay={0.08} className="md:col-span-4 md:col-start-9"><p className="text-[1.0625rem] text-muted">Comer, dormir y salir a recorrer, ordenado por quienes viven acá. Abrí una categoría para ver los lugares.</p></Reveal>
+          </div>
+          <div className="mt-14 grid gap-6 md:mt-20 md:grid-cols-3 md:gap-7">
+            {CATS.map((c, i) => <CatCard key={c.id} cat={c} i={i} onOpen={onOpen} />)}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ───────────────────────── Fotos ilustradas (hasta que la Junta suba las reales) ───────────────────────── */
+
+const HOLES = (() => {
+  const r = prng(5);
+  return Array.from({ length: 70 }, () => ({ x: r() * 400, y: 100 + r() * 290, rx: 4 + r() * 5, ry: 3 + r() * 3 }));
+})();
+const STARS = (() => { const r = prng(9); return Array.from({ length: 50 }, () => [r() * 400, r() * 240, 0.8 + r() * 1.2]); })();
+
+const Svg = ({ defs, children }) => (
+  <svg viewBox="0 0 400 400" preserveAspectRatio="xMidYMid slice" className="h-full w-full" aria-hidden="true" focusable="false">
+    <defs>{defs}</defs>{children}
+  </svg>
+);
+const Grad = ({ id, c }) => (
+  <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+    {c.map((col, i) => <stop key={i} offset={i / (c.length - 1)} stopColor={col} />)}
+  </linearGradient>
+);
+const Gull = ({ x, y, s = 1 }) => <path transform={`translate(${x} ${y}) scale(${s})`} d="M0 0 q8 -9 16 0 q8 -9 16 0" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" />;
+const Bird = ({ x, y, s = 1 }) => (
+  <g transform={`translate(${x} ${y}) scale(${s})`} fill="#68792D">
+    <ellipse rx="7" ry="2.6" /><circle cx="-7.5" cy="-.5" r="2.2" /><path d="M6 0 L14 2 L6 2.4Z" />
+    <circle cx="1" cy="1.2" r="1.5" fill="#E9A23B" /><path d="M-1 0 Q3 -13 14 -17 Q8 -7 5 0Z" />
+  </g>
+);
+const Tower = ({ x, y, s = 1, lamp = '#2C3E45' }) => (
+  <g transform={`translate(${x} ${y}) scale(${s})`}>
+    <path d="M-15 0 L-9 -150 L9 -150 L15 0Z" fill="#FFE7D2" />
+    <path d="M-12.04 -74 L-11.32 -92 L11.32 -92 L12.04 -74Z" fill="#E4684C" />
+    <rect x="-14" y="-158" width="28" height="6" rx="1.5" fill="#1B2A30" />
+    <rect x="-8" y="-176" width="16" height="18" fill={lamp} />
+    <path d="M-11 -176 L0 -192 L11 -176Z" fill="#1B2A30" />
+  </g>
+);
+
+const ART = {
+  kites: KiteArt,
+  playa: () => (
+    <Svg defs={<><Grad id="g-pl1" c={['#7FBBD8', '#F6D2B0']} /><Grad id="g-pl2" c={['#58B2C4', '#12627A']} /></>}>
+      <rect width="400" height="400" fill="url(#g-pl1)" />
+      <circle cx="280" cy="118" r="30" fill="#FFF8DC" />
+      <ellipse cx="90" cy="90" rx="70" ry="9" fill="#fff" opacity=".8" /><ellipse cx="130" cy="78" rx="40" ry="8" fill="#fff" opacity=".8" />
+      <rect y="200" width="400" height="80" fill="url(#g-pl2)" />
+      <path d="M0 278 C 90 256 200 292 290 268 S 380 262 400 268 V400 H0Z" fill="#EAD3A8" />
+      <path d="M0 278 C 90 256 200 292 290 268 S 380 262 400 268" fill="none" stroke="#fff" strokeWidth="6" strokeLinecap="round" opacity=".85" />
+      <path d="M0 340 C 120 318 260 352 400 326 V400 H0Z" fill="#DCC091" />
+      <Gull x="70" y="150" /><Gull x="320" y="170" s=".7" />
+    </Svg>
+  ),
+  faro: () => (
+    <Svg defs={<Grad id="g-fa" c={['#3A3E72', '#D5587B', '#F7A458']} />}>
+      <rect width="400" height="400" fill="url(#g-fa)" />
+      <rect y="270" width="400" height="130" fill="#233F5B" />
+      <path d="M0 400 V318 C 70 306 130 296 200 300 S 330 316 400 304 V400Z" fill="#8A3E2B" />
+      <path d="M0 318 C 70 306 130 296 200 300 S 330 316 400 304" fill="none" stroke="#7A6A38" strokeWidth="12" strokeLinecap="round" />
+      <Tower x={200} y={304} s={1.3} />
+      <Gull x="60" y="110" /><Gull x="300" y="80" s=".8" />
+    </Svg>
+  ),
+  loros: () => (
+    <Svg defs={<Grad id="g-lo" c={['#F7A458', '#E5814F', '#8A3E2B']} />}>
+      <rect width="400" height="400" fill="#F7C184" />
+      <rect y="70" width="400" height="330" fill="url(#g-lo)" />
+      {[130, 200, 262, 325].map((y, i) => <path key={y} d={`M0 ${y} q100 ${i % 2 ? 8 : -8} 200 0 t200 0 V${y + 22} H0Z`} fill="#7A432B" opacity=".16" />)}
+      <path d="M0 72 q100 -10 200 0 t200 0" stroke="#6D7340" strokeWidth="14" fill="none" strokeLinecap="round" />
+      <g fill="#24140D" opacity=".7">{HOLES.map((h, i) => <ellipse key={i} cx={h.x} cy={h.y} rx={h.rx} ry={h.ry} />)}</g>
+      <Bird x="110" y="130" s="1.8" /><Bird x="270" y="96" s="1.5" /><Bird x="330" y="220" s="1.7" /><Bird x="70" y="260" s="1.4" /><Bird x="200" y="330" s="1.6" />
+    </Svg>
+  ),
+  atardecer: () => (
+    <Svg defs={<><Grad id="g-at1" c={['#3A3E72', '#D5587B', '#F7A458']} /><Grad id="g-at2" c={['#E08A5E', '#233F5B']} /></>}>
+      <rect width="400" height="400" fill="url(#g-at1)" />
+      <circle cx="200" cy="232" r="46" fill="#FFD9A0" />
+      <ellipse cx="90" cy="120" rx="80" ry="10" fill="#F58D88" opacity=".8" /><ellipse cx="310" cy="160" rx="70" ry="8" fill="#F58D88" opacity=".8" />
+      <rect y="232" width="400" height="168" fill="url(#g-at2)" />
+      {[[120, 244], [92, 262], [66, 284], [44, 310], [28, 342]].map(([w, y]) => <rect key={y} x={200 - w / 2} y={y} width={w} height="5" rx="2.5" fill="#FFC07A" opacity=".75" />)}
+      <path d="M0 400 V300 C 40 290 80 300 110 330 L150 400Z" fill="#2B2230" />
+      <Gull x="260" y="90" /><Gull x="300" y="112" s=".7" />
+    </Svg>
+  ),
+  pesca: () => (
+    <Svg defs={<><Grad id="g-pe1" c={['#2F4A6E', '#D98A7C', '#F8C99A']} /><Grad id="g-pe2" c={['#E0A07F', '#2C5B72']} /></>}>
+      <rect width="400" height="400" fill="url(#g-pe1)" />
+      <circle cx="120" cy="212" r="34" fill="#FFE3B0" />
+      <rect y="220" width="400" height="180" fill="url(#g-pe2)" />
+      <g transform="translate(210 290)">
+        <path d="M-90 0 H90 Q78 38 40 38 H-40 Q-78 38 -90 0Z" fill="#E4684C" />
+        <rect x="-30" y="-34" width="50" height="34" fill="#FBEBD8" /><rect x="-22" y="-26" width="14" height="12" fill="#2C3E45" />
+        <path d="M50 0 V-90 M50 -90 L84 -10" stroke="#0E2B33" strokeWidth="3" fill="none" />
+      </g>
+      <path d="M40 340 q40 -8 80 0 t80 0 t80 0 t80 0" fill="none" stroke="#fff" strokeOpacity=".3" strokeWidth="4" />
+      <Gull x="300" y="110" /><Gull x="70" y="140" s=".7" />
+    </Svg>
+  ),
+  cabanas: () => (
+    <Svg defs={<Grad id="g-ca" c={['#7FBBD8', '#F6D2B0']} />}>
+      <rect width="400" height="400" fill="url(#g-ca)" />
+      <circle cx="310" cy="110" r="28" fill="#FFF8DC" />
+      <path d="M0 400 V250 C 80 220 160 250 240 235 S 360 215 400 240 V400Z" fill="#DCC091" />
+      <path d="M0 400 V320 C 100 290 200 330 300 305 S 380 300 400 310 V400Z" fill="#C9A877" />
+      {[[90, 262], [250, 258]].map(([x, y]) => (
+        <g key={x} transform={`translate(${x} ${y})`}>
+          <rect width="76" height="50" fill="#8A5A3B" /><path d="M-8 0 L38 -34 L84 0Z" fill="#0E2B33" />
+          <rect x="12" y="14" width="18" height="18" fill="#FFD07A" /><rect x="48" y="16" width="16" height="34" fill="#185E6A" />
+        </g>))}
+      <g fill="#7C8444">{[[40, 350], [160, 356], [300, 350], [350, 372], [220, 380]].map(([x, y]) => <circle key={x} cx={x} cy={y} r="9" />)}</g>
+    </Svg>
+  ),
+  noche: () => (
+    <Svg defs={<><Grad id="g-no" c={['#050E1A', '#0E2538', '#1C4559']} /><linearGradient id="g-nob" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stopColor="#FFF0BE" stopOpacity=".8" /><stop offset="1" stopColor="#FFF0BE" stopOpacity="0" /></linearGradient></>}>
+      <rect width="400" height="400" fill="url(#g-no)" />
+      <g fill="#fff">{STARS.map((s, i) => <circle key={i} cx={s[0]} cy={s[1]} r={s[2]} />)}</g>
+      <circle cx="90" cy="90" r="24" fill="#F3EFDC" />
+      <path d="M282 150 L-60 90 L-60 210Z" fill="url(#g-nob)" />
+      <rect y="290" width="400" height="110" fill="#06151F" />
+      <path d="M150 400 V320 C 220 300 300 296 400 300 V400Z" fill="#17171E" />
+      <Tower x={282} y={308} s={0.9} lamp="#FFEBA8" />
+    </Svg>
+  ),
+  dunas: () => (
+    <Svg defs={<Grad id="g-du" c={['#6DB6D8', '#C9E9EF']} />}>
+      <rect width="400" height="400" fill="url(#g-du)" />
+      <ellipse cx="110" cy="100" rx="80" ry="10" fill="#fff" opacity=".85" /><ellipse cx="300" cy="140" rx="60" ry="8" fill="#fff" opacity=".85" />
+      <path d="M0 400 V230 C 100 200 200 240 300 215 S 380 210 400 220 V400Z" fill="#E2C896" />
+      <path d="M0 400 V290 C 90 262 190 300 290 278 S 380 272 400 280 V400Z" fill="#D2B07A" />
+      <path d="M120 400 C 150 360 230 340 250 300 S 270 280 300 270" fill="none" stroke="#EAD3A8" strokeWidth="26" strokeLinecap="round" />
+      <g fill="#6F7A3B">{[[50, 262], [100, 248], [330, 240], [360, 300], [40, 330], [210, 262], [300, 330]].map(([x, y]) => <g key={x}><circle cx={x} cy={y} r="10" /><circle cx={x + 10} cy={y + 3} r="7" /></g>)}</g>
+    </Svg>
+  ),
+  caletaFachada: () => (
+    <Svg defs={<><Grad id="g-cf1" c={['#7FBBD8', '#F6D2B0']} /><Grad id="g-cf2" c={['#58B2C4', '#12627A']} /></>}>
+      <rect width="400" height="400" fill="url(#g-cf1)" />
+      <rect y="170" width="400" height="60" fill="url(#g-cf2)" />
+      <rect y="320" width="400" height="80" fill="#DCC091" />
+      <rect x="60" y="140" width="280" height="190" fill="#F4EFE6" />
+      <rect x="50" y="128" width="300" height="16" fill="#185E6A" />
+      <rect x="130" y="82" width="140" height="40" rx="8" fill="#0E2B33" />
+      <text x="200" y="110" textAnchor="middle" fontFamily="'Young Serif', Georgia, serif" fontSize="23" fill="#FBF6EC">La Caleta</text>
+      <path d="M60 176 H340 L350 206 H50Z" fill="#E4684C" />
+      {[0, 1, 2, 3, 4, 5].map(i => <path key={i} d={`M${60 + i * 46.7} 176 h23.3 l2 30 h-23.3Z`} fill="#FBF6EC" opacity=".92" />)}
+      <rect x="90" y="226" width="64" height="62" fill="#FFD07A" /><rect x="246" y="226" width="64" height="62" fill="#FFD07A" />
+      <rect x="172" y="226" width="56" height="104" rx="4" fill="#185E6A" /><circle cx="218" cy="280" r="3" fill="#FFD07A" />
+      <circle cx="356" cy="300" r="16" fill="#fff" /><circle cx="356" cy="300" r="16" fill="none" stroke="#E4684C" strokeWidth="6" strokeDasharray="12 12" />
+    </Svg>
+  ),
+  caletaSalon: () => (
+    <Svg defs={<><Grad id="g-cs1" c={['#6DB6D8', '#C9E9EF']} /><Grad id="g-cs2" c={['#58B2C4', '#12627A']} /></>}>
+      <rect width="400" height="400" fill="#EDE0CC" />
+      <rect x="70" y="70" width="260" height="170" rx="8" fill="url(#g-cs1)" /><rect x="70" y="170" width="260" height="70" fill="url(#g-cs2)" />
+      <path d="M200 70 V240 M70 155 H330" stroke="#F4EFE6" strokeWidth="8" />
+      <rect x="62" y="62" width="276" height="186" rx="12" fill="none" stroke="#F4EFE6" strokeWidth="10" />
+      <rect y="300" width="400" height="100" fill="#8A5A3B" />
+      {[90, 200, 310].map(x => <g key={x}><path d={`M${x} 0 V30`} stroke="#0E2B33" strokeWidth="2" /><path d={`M${x - 26} 52 Q${x} 18 ${x + 26} 52Z`} fill="#FFD07A" /></g>)}
+      {[[110, 330], [290, 340]].map(([x, y]) => (
+        <g key={x}><ellipse cx={x} cy={y} rx="62" ry="14" fill="#FBF6EC" /><rect x={x - 4} y={y} width="8" height="50" fill="#FBF6EC" />
+          <rect x={x - 82} y={y - 40} width="22" height="62" rx="6" fill="#185E6A" /><rect x={x + 60} y={y - 40} width="22" height="62" rx="6" fill="#185E6A" /></g>))}
+    </Svg>
+  ),
+  caletaPlato: () => (
+    <Svg defs={<pattern id="p-ck" width="40" height="40" patternUnits="userSpaceOnUse"><rect width="40" height="40" fill="#185E6A" /><rect width="20" height="20" fill="#1F7A8C" /><rect x="20" y="20" width="20" height="20" fill="#1F7A8C" /></pattern>}>
+      <rect width="400" height="400" fill="url(#p-ck)" />
+      <circle cx="200" cy="205" r="150" fill="#FBF6EC" /><circle cx="200" cy="205" r="118" fill="none" stroke="#E4D8C2" strokeWidth="6" />
+      <g transform="translate(200 210) rotate(-12)">
+        <path d="M-86 0 Q-30 -48 40 -30 Q74 -20 86 0 Q74 22 40 30 Q-30 46 -86 0Z" fill="#E8B27A" />
+        <path d="M86 0 L128 -30 L128 30Z" fill="#D9985F" />
+        <path d="M-50 -22 L-30 24 M-14 -30 L6 28 M22 -26 L42 24" stroke="#8A4B2A" strokeWidth="5" strokeLinecap="round" />
+        <circle cx="-60" cy="-8" r="5" fill="#2C3E45" />
+      </g>
+      <circle cx="292" cy="296" r="27" fill="#F0C75E" /><circle cx="292" cy="296" r="20" fill="#FBE59A" />
+      <g fill="#6F8A3B"><circle cx="120" cy="290" r="9" /><circle cx="138" cy="300" r="7" /><circle cx="104" cy="304" r="6" /></g>
+    </Svg>
+  ),
+  caletaTerraza: () => (
+    <Svg defs={<><Grad id="g-ct1" c={['#3A3E72', '#D5587B', '#F7A458']} /><Grad id="g-ct2" c={['#E08A5E', '#233F5B']} /></>}>
+      <rect width="400" height="400" fill="url(#g-ct1)" />
+      <circle cx="260" cy="210" r="40" fill="#FFD9A0" />
+      <rect y="210" width="400" height="110" fill="url(#g-ct2)" />
+      <rect y="320" width="400" height="80" fill="#8A5A3B" />
+      <rect y="236" width="400" height="8" fill="#F4EFE6" />
+      {[20, 100, 180, 260, 340].map(x => <rect key={x} x={x} y="236" width="10" height="84" fill="#F4EFE6" />)}
+      <path d="M0 40 Q200 140 400 40" stroke="#0E2B33" strokeWidth="2" fill="none" />
+      {[30, 90, 150, 210, 270, 330, 385].map(x => <circle key={x} cx={x} cy={40 + 100 * (x / 400) * (1 - x / 400) + 6} r="6" fill="#FFD07A" />)}
+      {[90, 300].map(x => (
+        <g key={x} transform={`translate(${x} 290)`}>
+          <path d="M0 -70 V40" stroke="#0E2B33" strokeWidth="4" /><path d="M-54 -46 Q0 -104 54 -46Z" fill="#E4684C" />
+          <ellipse cy="40" rx="40" ry="10" fill="#FBF6EC" />
+        </g>))}
+    </Svg>
+  ),
+};
+
+function Photo({ p }) {
+  if (p.src) return <img src={p.src} alt={p.cap || ''} draggable="false" className="h-full w-full object-cover" />;
+  const A = ART[p.art];
+  return A ? <A /> : null;
+}
+
+/* ───────────────────────── Diálogos y carrusel ───────────────────────── */
+
+function useDialog(ref, onClose) {
+  const cb = useRef(onClose);
+  cb.current = onClose;
+  useEffect(() => {
+    const prev = document.activeElement, el = ref.current;
+    (el.querySelector('[data-autofocus]') || el.querySelector('button')).focus();
+    document.body.style.overflow = 'hidden';
+    const key = (e) => {
+      if (e.key === 'Escape') return cb.current();
+      if (e.key !== 'Tab') return;
+      const f = el.querySelectorAll('button:not([disabled]), a[href], input:not([tabindex="-1"]), textarea, [tabindex="0"]'), a = f[0], z = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === a) { e.preventDefault(); z.focus(); }
+      else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a.focus(); }
+    };
+    document.addEventListener('keydown', key);
+    return () => { document.removeEventListener('keydown', key); document.body.style.overflow = ''; prev?.focus?.(); };
+  }, []);
+}
+
+function Sheet({ labelId, onClose, wide = false, children }) {
+  const ref = useRef(null);
+  useDialog(ref, onClose);
+  return (
+    <div className="fixed inset-0 z-50">
+      <motion.div className="absolute inset-0 bg-deep/60" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+        exit={{ opacity: 0, transition: { duration: 0.2 } }} transition={{ duration: 0.25 }} onClick={onClose} />
+      <motion.aside ref={ref} role="dialog" aria-modal="true" aria-labelledby={labelId}
+        className={`absolute right-0 top-0 flex h-full w-full flex-col overflow-y-auto bg-bg text-ink ${wide ? 'max-w-[36rem]' : 'max-w-[30rem]'}`}
+        style={{ paddingTop: 'env(safe-area-inset-top, 0px)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+        initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%', transition: { duration: 0.26, ease: [0.32, 0.72, 0, 1] } }}
+        transition={{ type: 'spring', duration: 0.5, bounce: 0 }}>
+        {children}
+      </motion.aside>
+    </div>
+  );
+}
+
+function Modal({ label, onClose, children }) {
+  const ref = useRef(null);
+  useDialog(ref, onClose);
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center p-4">
+      <motion.div className="absolute inset-0 bg-deep/85" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+        exit={{ opacity: 0, transition: { duration: 0.15 } }} transition={{ duration: 0.25 }} onClick={onClose} />
+      <motion.div ref={ref} role="dialog" aria-modal="true" aria-label={label} className="relative w-full max-w-3xl"
+        initial={{ opacity: 0, scale: 0.96, filter: 'blur(4px)' }} animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+        exit={{ opacity: 0, scale: 0.98, transition: { duration: 0.15 } }} transition={{ duration: 0.3, ease: OUT }}>
+        <button type="button" onClick={onClose} aria-label="Cerrar"
+          className="press absolute right-3 top-3 z-20 grid h-11 w-11 place-items-center rounded-full bg-deep/55 text-sand backdrop-blur-md"><I.X size={20} /></button>
+        {children}
+      </motion.div>
+    </div>
+  );
+}
+
+function Carousel({ photos, start = 0, dark = false }) {
+  const n = photos.length;
+  const [[i, dir], set] = useState([Math.min(start, n - 1), 0]);
+  const step = (d) => set(([c]) => [(c + d + n) % n, d]);
+  const p = photos[i];
+  const arrows = (e) => { if (e.key === 'ArrowRight') step(1); if (e.key === 'ArrowLeft') step(-1); };
+  // En la vista ampliada las flechas del teclado funcionan sin enfocar el carrusel.
+  useEffect(() => { if (!dark) return; window.addEventListener('keydown', arrows); return () => window.removeEventListener('keydown', arrows); });
+  const slide = {
+    enter: (d) => ({ x: d > 0 ? '100%' : d < 0 ? '-100%' : 0, opacity: d === 0 ? 1 : 0.6 }),
+    center: { x: 0, opacity: 1 },
+    exit: (d) => ({ x: d > 0 ? '-30%' : '30%', opacity: 0 }),
+  };
+  const arrow = 'press absolute top-1/2 z-10 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-deep/50 text-sand backdrop-blur-md';
+  return (
+    <div role="group" aria-roledescription="carrusel" aria-label="Fotos" tabIndex={0} className="rounded-3xl"
+      onKeyDown={dark ? undefined : arrows}>
+      <div className="relative aspect-[4/3] overflow-hidden rounded-3xl bg-deep">
+        <AnimatePresence initial={false} custom={dir}>
+          <motion.div key={i} custom={dir} variants={slide} initial="enter" animate="center" exit="exit"
+            transition={{ type: 'spring', duration: 0.5, bounce: 0 }}
+            drag={n > 1 ? 'x' : false} dragConstraints={{ left: 0, right: 0 }} dragElastic={0.25}
+            onDragEnd={(_, { offset, velocity }) => { if (Math.abs(offset.x) > 60 || Math.abs(velocity.x) > 400) step(offset.x < 0 ? 1 : -1); }}
+            className="absolute inset-0" style={{ touchAction: 'pan-y' }} role="img" aria-label={p.cap || `Foto ${i + 1}`}>
+            <Photo p={p} />
+          </motion.div>
+        </AnimatePresence>
+        {n > 1 && (
+          <>
+            <button type="button" onClick={() => step(-1)} aria-label="Foto anterior" className={`${arrow} left-3`}><I.ChevronLeft size={22} /></button>
+            <button type="button" onClick={() => step(1)} aria-label="Foto siguiente" className={`${arrow} right-3`}><I.ChevronRight size={22} /></button>
+          </>
+        )}
+      </div>
+      <div className="mt-4 flex items-center justify-between gap-4">
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.p key={i} className={`min-h-[1.5rem] text-[0.9375rem] ${dark ? 'text-sand/85' : 'text-muted'}`}
+            initial={{ opacity: 0, y: 4, filter: 'blur(3px)' }} animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, filter: 'blur(3px)' }} transition={{ duration: 0.18, ease: OUT }}>{p.cap}</motion.p>
+        </AnimatePresence>
+        {n > 1 && (
+          <div className="flex shrink-0">
+            {photos.map((_, k) => (
+              <button key={k} type="button" aria-label={`Ir a la foto ${k + 1}`} aria-current={k === i} onClick={() => set([k, k > i ? 1 : -1])}
+                className="grid h-8 w-6 place-items-center">
+                <span className={`block h-2 rounded-full transition-all duration-300 ${k === i ? 'w-5 bg-coral' : `w-2 ${dark ? 'bg-sand/40' : 'bg-ink/25'}`}`} />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ───────────────────────── Directorio: panel lateral ───────────────────────── */
+
+function VenueDetail({ v, cat, onBack, onClose }) {
+  return (
+    <motion.div className="flex flex-1 flex-col" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 24, transition: { duration: 0.15 } }} transition={{ duration: 0.3, ease: OUT }}>
+      <div className="flex items-center justify-between px-5 pt-5 sm:px-7">
+        <button type="button" onClick={onBack} className="press inline-flex min-h-[44px] items-center gap-2 rounded-full bg-surface px-4 font-semibold hover:bg-ink/10">
+          <I.ArrowLeft size={18} /> {cat.title}
+        </button>
+        <button type="button" onClick={onClose} aria-label="Cerrar" className="press grid h-11 w-11 place-items-center rounded-full bg-surface hover:bg-ink/10"><I.X size={20} /></button>
+      </div>
+      <div className="px-6 pt-5 sm:px-8"><Carousel photos={v.photos} /></div>
+      <div className="px-7 pb-8 pt-7 sm:px-9">
+        <h2 id="drawer-title" className="font-display text-[2.4rem] leading-none">{v.name}</h2>
+        <p className="mt-3 text-[1.0625rem] text-muted">{v.what}</p>
+        {v.about && <p className="mt-5 max-w-[46ch]">{v.about}</p>}
+        <p className="mt-5 flex items-center gap-2 font-medium text-sea"><I.Clock size={16} aria-hidden="true" />{v.when}</p>
+        <a href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Hola, quiero consultar por ${v.name}`)}`} target="_blank" rel="noreferrer"
+          className="press mt-8 inline-flex min-h-[52px] items-center gap-2.5 rounded-full bg-coral px-7 font-semibold text-[#0E2B33] hover:brightness-105">
+          <I.MessageCircle size={19} /> Consultar por WhatsApp
+        </a>
+      </div>
+    </motion.div>
+  );
+}
+
+function Drawer({ cat, venues, onClose }) {
+  const [openId, setOpenId] = useState(null);
+  const spots = venues.filter(v => v.cat === cat.id);
+  const v = spots.find(s => s.id === openId);
+  return (
+    <Sheet labelId="drawer-title" onClose={v ? () => setOpenId(null) : onClose}>
+      <AnimatePresence mode="wait" initial={false}>
+        {v ? <VenueDetail key={v.id} v={v} cat={cat} onBack={() => setOpenId(null)} onClose={onClose} /> : (
+          <motion.div key="list" className="flex flex-1 flex-col" initial={{ opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -24, transition: { duration: 0.15 } }} transition={{ duration: 0.3, ease: OUT }}>
+            <div className="relative px-7 pb-8 pt-7 sm:px-9" style={{ background: `rgb(var(--${cat.tint}))` }}>
+              <button type="button" onClick={onClose} aria-label="Cerrar"
+                className="press absolute right-4 top-4 grid h-11 w-11 place-items-center rounded-full bg-bg/70 hover:bg-bg"><I.X size={20} /></button>
+              <cat.Icon size={30} strokeWidth={1.5} className="text-sea" aria-hidden="true" />
+              <h2 id="drawer-title" className="mt-5 font-display text-[2.4rem] leading-none">{cat.title}</h2>
+              <p className="mt-3 max-w-[28ch] text-muted">{cat.blurb}</p>
+            </div>
+            <ul className="m-0 flex list-none flex-col gap-3 p-6 sm:p-8">
+              {spots.length === 0 && <li className="rounded-3xl bg-surface p-5 text-muted">Todavía no hay lugares cargados en esta categoría.</li>}
+              {spots.map((s, i) => (
+                <motion.li key={s.id} whileTap={s.photos.length ? { scale: 0.985 } : undefined}
+                  className={`group relative rounded-3xl bg-surface ${s.photos.length ? 'overflow-hidden' : 'p-5'}`}
+                  initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14 + i * 0.05, duration: 0.4, ease: OUT }}>
+                  {s.photos.length > 0 && (
+                    <div className="relative aspect-[16/10] overflow-hidden bg-deep">
+                      <div className="h-full w-full transition-transform duration-[900ms] ease-[cubic-bezier(.23,1,.32,1)] group-hover:scale-[1.05]"><Photo p={s.photos[0]} /></div>
+                      <span className="absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-deep/60 px-3 py-1.5 text-[0.8125rem] font-semibold text-sand backdrop-blur-md">
+                        <I.Camera size={14} aria-hidden="true" />{s.photos.length} {s.photos.length > 1 ? 'fotos' : 'foto'}
+                      </span>
+                    </div>
+                  )}
+                  <div className={s.photos.length ? 'p-5' : ''}>
+                    <h3 className="font-display text-[1.375rem] leading-tight">{s.name}</h3>
+                    <p className="mt-1 text-muted">{s.what}</p>
+                    <p className="mt-3 flex items-center gap-2 text-[0.9375rem] font-medium text-sea"><I.Clock size={15} aria-hidden="true" />{s.when}</p>
+                    {s.photos.length > 0 && (
+                      <button type="button" onClick={() => setOpenId(s.id)} aria-label={`Ver fotos y detalles de ${s.name}`}
+                        className="mt-4 inline-flex items-center gap-2 font-semibold after:absolute after:inset-0 after:content-['']">
+                        Ver fotos y detalles <I.ArrowUpRight size={17} aria-hidden="true" />
+                      </button>
+                    )}
+                  </div>
+                </motion.li>
+              ))}
+            </ul>
+            <p className="mt-auto px-7 pb-8 text-[0.9375rem] text-muted sm:px-9">Lugares de ejemplo para el prototipo. La Junta Vecinal los reemplaza por el directorio real.</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </Sheet>
+  );
+}
+
+function KiteArt() {
+  const kites = [[150, 92, '#E4684C', -10, 1], [330, 58, '#F0C75E', 6, 0.85], [470, 122, '#0E2B33', -4, 1.1]];
+  return (
+    <svg viewBox="0 0 600 320" preserveAspectRatio="xMidYMid slice" className="h-full w-full" aria-hidden="true" focusable="false">
+      <defs>
+        <linearGradient id="kSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#7FBBD8" /><stop offset="1" stopColor="#F6D2B0" /></linearGradient>
+        <linearGradient id="kSea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#2A7B90" /><stop offset="1" stopColor="#0F4252" /></linearGradient>
+      </defs>
+      <rect width="600" height="320" fill="url(#kSky)" />
+      <path d="M0 232 L70 214 L150 222 L210 232Z" fill="#B67A57" />
+      <rect y="230" width="600" height="90" fill="url(#kSea)" />
+      <path d="M0 262 q40 -6 80 0 t80 0 t80 0 t80 0 t80 0 t80 0 t80 0 t80 0" fill="none" stroke="#fff" strokeOpacity=".28" strokeWidth="3" />
+      {kites.map(([x, y, c, rot, s], i) => (
+        <g key={i} transform={`translate(${x} ${y}) scale(${s})`}>
+          <g className="sway" style={{ animationDelay: `${-i * 1.4}s` }}>
+            <path d="M-48 0 Q0 -40 48 0 Q0 -15 -48 0Z" fill={c} transform={`rotate(${rot})`} />
+          </g>
+          <path d={`M0 -4 L${i % 2 ? -14 : 16} ${258 - y - 10}`} stroke="#0E2B33" strokeOpacity=".5" strokeWidth="1.2" />
+          <circle cx={i % 2 ? -14 : 16} cy={258 - y - 14} r="4" fill="#0E2B33" />
+          <rect x={(i % 2 ? -14 : 16) - 11} y={258 - y - 8} width="22" height="3.5" rx="1.7" fill={c} />
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+const DOT = { Evento: 'bg-coral', Comunidad: 'bg-sea', Aviso: 'bg-[#E0AE3C]' };
+
+function NewsCard({ n, big, className = '', delay = 0 }) {
+  const meta = (
+    <p className="flex items-center gap-2.5 text-[0.9375rem] text-muted">
+      <span className={`h-2.5 w-2.5 rounded-full ${DOT[n.kind]}`} aria-hidden="true" /><span className="font-semibold text-ink">{n.kind}</span><span>{n.date}</span>
+    </p>
+  );
+  const link = (
+    <a href="#novedades" onClick={e => e.preventDefault()} className="inline-flex items-center gap-2 font-semibold after:absolute after:inset-0 after:content-['']">
+      {n.kind === 'Evento' ? 'Ver programa' : 'Leer más'} <I.ArrowUpRight size={18} className="news-go" aria-hidden="true" />
+    </a>
+  );
+  if (big) {
+    return (
+      <Reveal delay={delay} className={className}>
+        <motion.article whileHover={{ y: -5 }} whileTap={{ scale: 0.995 }} transition={SPRING}
+          className="news group relative flex h-full flex-col overflow-hidden rounded-[1.75rem] bg-bg">
+          {n.photo && <div className="h-60 overflow-hidden sm:h-72 md:h-[19rem]"><div className="news-art h-full w-full"><Photo p={n.photo} /></div></div>}
+          <div className="flex flex-1 flex-col justify-between gap-8 p-7 sm:p-9">
+            <div>
+              {meta}
+              <h3 className="mt-5 max-w-[20ch] font-display text-[clamp(1.9rem,3vw,2.6rem)] leading-[1.08]">{n.title}</h3>
+              <p className="mt-4 max-w-[52ch] text-muted">{n.body}</p>
+            </div>
+            {link}
+          </div>
+        </motion.article>
+      </Reveal>
+    );
+  }
+  const body = (
+    <>
+      <div>
+        {meta}
+        <h3 className="mt-5 font-display text-[1.6rem] leading-[1.12]">{n.title}</h3>
+        <p className="mt-3 text-muted">{n.body}</p>
+      </div>
+      {link}
+    </>
+  );
+  return (
+    <Reveal delay={delay} className={className}>
+      <motion.article whileHover={{ y: -5 }} whileTap={{ scale: 0.99 }} transition={SPRING}
+        className={`news group relative flex h-full flex-col overflow-hidden rounded-[1.75rem] bg-bg ${n.photo ? '' : 'justify-between gap-8 p-7 sm:p-8'}`}>
+        {n.photo && <div className="h-40 overflow-hidden"><div className="news-art h-full w-full"><Photo p={n.photo} /></div></div>}
+        {n.photo ? <div className="flex flex-1 flex-col justify-between gap-8 p-7 sm:p-8">{body}</div> : body}
+      </motion.article>
+    </Reveal>
+  );
+}
+
+function NewsGrid({ news, onAdmin }) {
+  const n = news.length;
+  const span = (i) => (n <= 2 ? 'md:col-span-3' : i === 0 ? 'md:col-span-4 md:row-span-2' : i < 3 ? 'md:col-span-2' : 'md:col-span-3');
+  const tile = n === 1 || (n >= 3 && (n - 3) % 2 === 1) ? 'md:col-span-3' : 'md:col-span-6';
+  return (
+    <section id="novedades" className="bg-surface py-24 md:py-40">
+      <div className="gutter">
+        <div className="wrap">
+          <div className="grid items-end gap-6 md:grid-cols-12 md:gap-10">
+            <Reveal className="md:col-span-7"><h2 className="font-display text-[clamp(2.2rem,4.6vw,4rem)] leading-[1.04] tracking-[-0.015em]">Novedades de la Junta Vecinal</h2></Reveal>
+            <Reveal delay={0.08} className="md:col-span-4 md:col-start-9"><p className="text-[1.0625rem] text-muted">Eventos, avisos y trabajos del pueblo, publicados por la Junta.</p></Reveal>
+          </div>
+          <div className="mt-14 grid gap-5 md:mt-20 md:grid-cols-6">
+            {news.map((item, i) => <NewsCard key={item.id} n={item} big={i === 0 && n >= 3} className={span(i)} delay={[0, 0.06, 0.12, 0.04][i] ?? 0.04} />)}
+            <Reveal delay={0.1} className={tile}>
+              <article className="flex h-full flex-col justify-between gap-8 rounded-[1.75rem] bg-deep p-7 text-sand sm:p-8">
+                <div>
+                  <I.Megaphone size={26} strokeWidth={1.6} className="text-coral" aria-hidden="true" />
+                  <h3 className="mt-5 font-display text-[1.6rem] leading-[1.12]">Las novedades las publica la Junta</h3>
+                  <p className="mt-3 text-sand/75">La Junta agrega, edita y borra estas noticias desde un panel simple, sin pedirle nada a nadie.</p>
+                </div>
+                <button type="button" onClick={onAdmin}
+                  className="press inline-flex items-center gap-2 self-start font-semibold underline decoration-sand/40 decoration-2 underline-offset-[6px] hover:decoration-sand">
+                  Probar el panel <I.ArrowUpRight size={18} aria-hidden="true" />
+                </button>
+              </article>
+            </Reveal>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ───────────────────────── Galería ───────────────────────── */
+
+function Gallery() {
+  const [open, setOpen] = useState(null);
+  return (
+    <section id="galeria" className="pb-24 md:pb-40">
+      <div className="gutter">
+        <div className="wrap">
+          <div className="grid items-end gap-6 md:grid-cols-12 md:gap-10">
+            <Reveal className="md:col-span-7"><h2 className="font-display text-[clamp(2.2rem,4.6vw,4rem)] leading-[1.04] tracking-[-0.015em]">El Cóndor en fotos</h2></Reveal>
+            <Reveal delay={0.08} className="md:col-span-4 md:col-start-9"><p className="text-[1.0625rem] text-muted">Playa, acantilados, faro y vida de pueblo. Tocá una foto para verla en grande.</p></Reveal>
+          </div>
+          <div className="mt-14 columns-1 gap-5 sm:columns-2 lg:columns-3 md:mt-20">
+            {GAL.map((g, i) => (
+              <Reveal key={g.art} delay={0.04 * (i % 3)} className="mb-5 break-inside-avoid">
+                <motion.button type="button" onClick={() => setOpen(i)} aria-label={`Ver foto: ${g.cap}`} aria-haspopup="dialog" whileTap={{ scale: 0.985 }} transition={SPRING}
+                  className="group relative block w-full overflow-hidden rounded-[1.75rem] bg-deep text-left" style={{ aspectRatio: g.ratio }}>
+                  <div className="h-full w-full transition-transform duration-[900ms] ease-[cubic-bezier(.23,1,.32,1)] group-hover:scale-[1.05]"><Photo p={g} /></div>
+                  <span className="absolute inset-x-0 bottom-0 p-5 pt-14 text-[0.9375rem] font-semibold text-sand"
+                    style={{ background: 'linear-gradient(to top, rgba(4,24,32,.65), transparent)' }}>{g.cap}</span>
+                </motion.button>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </div>
+      <AnimatePresence>
+        {open !== null && <Modal key="lightbox" label="Galería de fotos" onClose={() => setOpen(null)}><Carousel photos={GAL} start={open} dark /></Modal>}
+      </AnimatePresence>
+    </section>
+  );
+}
+
+/* ───────────────────────── Clima y mareas ───────────────────────── */
+
+// Valores de ejemplo: en la versión final salen de un servicio de pronóstico y de la tabla de mareas.
+const WEATHER = { temp: 21, sky: 'Despejado', windFrom: 'Sur', windTo: 0, kmh: 18 };
+const TIDE_REF = Date.UTC(2026, 9, 31, 2, 40);   // pleamar de referencia
+const TIDE_HALF = 6.21 * 3600e3;                  // de pleamar a bajamar
+function tideAt(t) {
+  const k = (t - TIDE_REF) / TIDE_HALF;           // 0 pleamar, 1 bajamar, 2 pleamar…
+  const level = 0.5 + 0.5 * Math.cos(Math.PI * k);
+  const nextK = Math.ceil(k + 1e-9);
+  return { level, rising: Math.sin(Math.PI * k) < 0, next: TIDE_REF + nextK * TIDE_HALF, nextHigh: ((nextK % 2) + 2) % 2 === 0 };
+}
+const hhmm = new Intl.DateTimeFormat('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false });
+
+function Conditions() {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => { const id = setInterval(() => setNow(Date.now()), 60000); return () => clearInterval(id); }, []);
+  const t = tideAt(now);
+  const state = t.level > 0.88 ? 'Pleamar' : t.level < 0.12 ? 'Bajamar' : t.rising ? 'Subiendo' : 'Bajando';
+  const meters = (0.4 + t.level * 4.2).toFixed(1).replace('.', ',');
+  const label = 'flex items-center gap-1.5 text-[0.8125rem] font-semibold text-sand/80';
+  const value = 'mt-1.5 font-display text-[1.5rem] leading-none sm:text-[1.75rem]';
+  const sub = 'mt-1.5 text-[0.8125rem] leading-snug text-sand/80';
+  return (
+    <section aria-label="Clima y mareas ahora" className="glass w-full max-w-[26rem] rounded-3xl p-4 text-sand sm:p-5 md:w-[24rem]"
+      style={{ background: 'rgb(var(--deep) / .36)' }}>
+      <div className="grid grid-cols-[1fr_1fr_1.4fr] gap-3 sm:gap-4">
+        <div className="min-w-0">
+          <p className={label}><I.Thermometer size={15} aria-hidden="true" />Temperatura</p>
+          <p className={value}>{WEATHER.temp}°C</p>
+          <p className={sub}>{WEATHER.sky}</p>
+        </div>
+        <div className="min-w-0">
+          <p className={label}>
+            <motion.span className="inline-flex" initial={{ rotate: WEATHER.windTo - 45 - 60 }} animate={{ rotate: WEATHER.windTo - 45 }}
+              transition={{ type: 'spring', duration: 1.2, bounce: 0.25, delay: 0.6 }}><I.Navigation size={15} fill="currentColor" aria-hidden="true" /></motion.span>Viento
+          </p>
+          <p className={value}>{WEATHER.kmh}<span className="ml-1 text-[0.9375rem] font-sans font-semibold">km/h</span></p>
+          <p className={sub}>Del {WEATHER.windFrom}</p>
+        </div>
+        <div className="min-w-0">
+          <p className={label}><I.Waves size={15} aria-hidden="true" />Marea</p>
+          <div className="mt-1.5 flex items-center gap-2.5">
+            <div className="relative h-10 w-3.5 shrink-0 overflow-hidden rounded-full bg-sand/20" role="img"
+              aria-label={`Nivel de marea ${Math.round(t.level * 100)} por ciento`}>
+              <motion.div className="absolute inset-0 rounded-full bg-[#8ED0D8]" style={{ transformOrigin: 'bottom' }}
+                initial={{ scaleY: 0 }} animate={{ scaleY: Math.max(t.level, 0.06) }} transition={{ type: 'spring', duration: 1.4, bounce: 0.1, delay: 0.5 }} />
+            </div>
+            <div className="min-w-0">
+              <p className="flex items-center gap-1 font-display text-[1.25rem] leading-none sm:text-[1.5rem]">
+                {state}
+                {state !== 'Pleamar' && state !== 'Bajamar' && (t.rising ? <I.ArrowUp size={14} className="shrink-0" aria-hidden="true" /> : <I.ArrowDown size={14} className="shrink-0" aria-hidden="true" />)}
+              </p>
+              <p className="mt-1.5 text-[0.8125rem] text-sand/80">{meters} m</p>
+            </div>
+          </div>
+          <p className={sub}>{t.nextHigh ? 'Pleamar' : 'Bajamar'} a las {hhmm.format(t.next)}</p>
+        </div>
+      </div>
+      <p className="mt-3 text-[0.75rem] text-sand/60">Datos de ejemplo para el prototipo.</p>
+    </section>
+  );
+}
+
+function Footer({ onAdmin }) {
+  const wa = `https://wa.me/${WHATSAPP}`;
+  const soc = 'press grid h-12 w-12 place-items-center rounded-full bg-sand/10 text-sand hover:bg-sand/20';
+  return (
+    <footer id="contacto" className="relative bg-bg text-sand">
+      <svg viewBox="0 0 1440 80" preserveAspectRatio="none" className="-mb-px block h-12 w-full text-deep md:h-20" aria-hidden="true" focusable="false">
+        <path d="M0 80 V40 C 180 0 360 0 540 28 S 900 80 1100 44 S 1340 6 1440 30 V80Z" fill="currentColor" />
+      </svg>
+      <div className="gutter overflow-hidden bg-deep pb-8 pt-8 md:pt-14">
+        <div className="wrap">
+          <div className="grid gap-14 md:grid-cols-12 md:gap-10">
+            <Reveal className="md:col-span-6">
+              <h2 className="max-w-[16ch] font-display text-[clamp(2.2rem,4.4vw,3.8rem)] leading-[1.05] tracking-[-0.015em]">¿Venís? Escribinos y te ayudamos a armar el viaje</h2>
+              <a href={wa} target="_blank" rel="noreferrer"
+                className="press mt-9 inline-flex min-h-[56px] items-center gap-3 rounded-full bg-coral px-8 text-[1.0625rem] font-semibold text-[#0E2B33] hover:brightness-105">
+                <I.MessageCircle size={21} /> Escribir por WhatsApp
+              </a>
+              <p className="mt-4 text-sand/70">+54 2920 12-3456</p>
+            </Reveal>
+            <Reveal delay={0.08} className="grid content-start gap-10 sm:grid-cols-2 md:col-span-5 md:col-start-8">
+              <div>
+                <h3 className="font-display text-[1.375rem]">Ubicación</h3>
+                <p className="mt-3 flex gap-3 text-sand/80"><I.MapPin size={20} className="mt-0.5 shrink-0 text-coral" aria-hidden="true" />Balneario El Cóndor, Río Negro. A 30 km de Viedma por la Ruta Provincial 1.</p>
+                <a href="https://www.google.com/maps/search/?api=1&query=Balneario+El+C%C3%B3ndor+R%C3%ADo+Negro" target="_blank" rel="noreferrer"
+                  className="mt-4 inline-flex items-center gap-2 font-semibold underline decoration-sand/40 decoration-2 underline-offset-[6px] hover:decoration-sand">Abrir en el mapa <I.ArrowUpRight size={17} aria-hidden="true" /></a>
+              </div>
+              <div>
+                <h3 className="font-display text-[1.375rem]">Contacto</h3>
+                <p className="mt-3 flex gap-3 text-sand/80"><I.Mail size={20} className="mt-0.5 shrink-0 text-coral" aria-hidden="true" />contacto@elcondor.com.ar</p>
+                <h3 className="mt-8 font-display text-[1.375rem]">Redes</h3>
+                <div className="mt-3 flex gap-3">
+                  <motion.a whileHover={{ y: -3 }} transition={SPRING} href="https://www.instagram.com/" target="_blank" rel="noreferrer" aria-label="Instagram de la Junta Vecinal" className={soc}><I.Instagram size={21} /></motion.a>
+                  <motion.a whileHover={{ y: -3 }} transition={SPRING} href="https://www.facebook.com/" target="_blank" rel="noreferrer" aria-label="Facebook de la Junta Vecinal" className={soc}><I.Facebook size={21} /></motion.a>
+                </div>
+              </div>
+            </Reveal>
+          </div>
+          <p aria-hidden="true" className="mt-20 select-none whitespace-nowrap text-center font-display text-[clamp(4rem,16.5vw,17rem)] leading-[0.78] tracking-[-0.03em] text-sand/[0.09] md:mt-28">El Cóndor</p>
+          <div className="mt-10 flex flex-col justify-between gap-2 text-[0.9375rem] text-sand/65 sm:flex-row">
+            <p>© 2026 Junta Vecinal El Cóndor. Todos los derechos reservados.</p>
+            <p className="flex flex-wrap items-center gap-x-6 gap-y-2">
+              <span>Diseño por Web del Cóndor</span>
+              <button type="button" onClick={onAdmin} className="press inline-flex min-h-[44px] items-center gap-2 font-semibold text-sand/80 hover:text-sand"><I.Lock size={15} aria-hidden="true" /> Acceso Junta Vecinal</button>
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+/* ───────────────────────── Panel de la Junta (vista privada simulada) ───────────────────────── */
+
+const KINDS = ['Evento', 'Comunidad', 'Aviso'];
+const inputCls = 'w-full rounded-2xl bg-surface px-4 py-3 text-[1rem] text-ink outline-none ring-2 ring-transparent transition-shadow placeholder:text-muted/70 focus:ring-coral';
+const btnGhost = 'press inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full bg-surface px-4 text-[0.9375rem] font-semibold text-ink hover:bg-ink/10';
+const btnMain = 'press inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full bg-coral px-6 font-semibold text-[#0E2B33] hover:brightness-105';
+
+// Reduce la foto antes de guardarla para no llenar la memoria del navegador.
+const toDataUrl = (file) => new Promise((res, rej) => {
+  const fr = new FileReader();
+  fr.onerror = rej;
+  fr.onload = () => {
+    const img = new Image();
+    img.onerror = rej;
+    img.onload = () => {
+      const k = Math.min(1, 1400 / Math.max(img.width, img.height)), c = document.createElement('canvas');
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      res(c.toDataURL('image/jpeg', 0.82));
+    };
+    img.src = fr.result;
+  };
+  fr.readAsDataURL(file);
+});
+
+function Field({ id, label, hint, error, children }) {
+  return (
+    <div>
+      <label htmlFor={id} className="mb-2 block font-semibold">{label}</label>
+      {children}
+      {hint && <p className="mt-1.5 text-[0.9375rem] text-muted">{hint}</p>}
+      {error && <p id={`${id}-e`} role="alert" className="mt-2 flex items-center gap-2 text-[0.9375rem] font-semibold"><I.AlertCircle size={16} className="text-coral" aria-hidden="true" />{error}</p>}
+    </div>
+  );
+}
+
+function PhotoPicker({ photos, setPhotos, max = 8, hint }) {
+  const ref = useRef(null);
+  const [busy, setBusy] = useState(false);
+  const add = async (e) => {
+    const files = [...e.target.files].slice(0, max - photos.length);
+    e.target.value = '';
+    if (!files.length) return;
+    setBusy(true);
+    try {
+      const urls = await Promise.all(files.map(toDataUrl));
+      setPhotos(ps => [...ps, ...urls.map(src => ({ src, cap: '' }))]);
+    } catch (_) { /* un archivo que no es imagen simplemente se ignora */ }
+    setBusy(false);
+  };
+  const mini = 'press grid h-10 w-10 place-items-center rounded-full bg-deep/70 text-sand backdrop-blur-md hover:bg-deep';
+  return (
+    <div>
+      {photos.length > 0 && (
+        <ul className="m-0 mb-3 grid list-none grid-cols-3 gap-3 p-0">
+          {photos.map((p, k) => (
+            <li key={k} className="relative aspect-square overflow-hidden rounded-2xl bg-deep">
+              <Photo p={p} />
+              {k === 0 && <span className="absolute left-2 top-2 rounded-full bg-deep/70 px-2.5 py-1 text-[0.75rem] font-semibold text-sand">Portada</span>}
+              <div className="absolute inset-x-1.5 bottom-1.5 flex items-end justify-between">
+                {k > 0 ? <button type="button" aria-label="Usar como portada" onClick={() => setPhotos(ps => [ps[k], ...ps.filter((_, j) => j !== k)])} className={mini}><I.Star size={16} /></button> : <span />}
+                <button type="button" aria-label="Quitar foto" onClick={() => setPhotos(ps => ps.filter((_, j) => j !== k))} className={mini}><I.Trash2 size={16} /></button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      {photos.length < max && (
+        <>
+          <button type="button" disabled={busy} onClick={() => ref.current.click()} className={btnGhost}><I.ImagePlus size={18} />{busy ? 'Cargando…' : photos.length ? 'Agregar más fotos' : 'Elegir fotos'}</button>
+          <input ref={ref} type="file" accept="image/*" multiple={max > 1} tabIndex={-1} className="sr-only" aria-label="Elegir fotos del equipo" onChange={add} />
+        </>
+      )}
+      {hint && <p className="mt-2 text-[0.9375rem] text-muted">{hint}</p>}
+    </div>
+  );
+}
+
+function FormSheet({ title, onClose, onSubmit, children }) {
+  return (
+    <Sheet labelId="form-title" onClose={onClose} wide>
+      <div className="flex items-center justify-between px-7 pb-2 pt-7 sm:px-9">
+        <h2 id="form-title" className="font-display text-[2rem] leading-none">{title}</h2>
+        <button type="button" onClick={onClose} aria-label="Cerrar" className="press grid h-11 w-11 place-items-center rounded-full bg-surface hover:bg-ink/10"><I.X size={20} /></button>
+      </div>
+      <form onSubmit={onSubmit} noValidate className="flex flex-1 flex-col gap-6 px-7 pb-8 pt-4 sm:px-9">
+        {children}
+        <div className="mt-auto flex flex-wrap justify-end gap-3 pt-4">
+          <button type="button" onClick={onClose} className={btnGhost}>Cancelar</button>
+          <button type="submit" className={btnMain}><I.Check size={18} /> Guardar</button>
+        </div>
+      </form>
+    </Sheet>
+  );
+}
+
+function Segmented({ label, value, options, onChange }) {
+  return (
+    <div>
+      <p className="mb-2 font-semibold">{label}</p>
+      <div role="group" aria-label={label} className="flex flex-wrap gap-2">
+        {options.map(([v, text, Icon]) => (
+          <button key={v} type="button" aria-pressed={value === v} onClick={() => onChange(v)}
+            className={`press inline-flex min-h-[44px] items-center gap-2 rounded-full px-4 font-semibold ${value === v ? 'bg-deep text-sand' : 'bg-surface text-ink hover:bg-ink/10'}`}>
+            {Icon && <Icon size={17} aria-hidden="true" />}{text}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function NewsForm({ item, onSave, onClose }) {
+  const [f, setF] = useState(() => item || { id: `n${Date.now()}`, kind: 'Evento', date: '', title: '', body: '', photo: null });
+  const [photos, setPhotos] = useState(item?.photo ? [item.photo] : []);
+  const [err, setErr] = useState('');
+  const set = (k) => (e) => { setF(x => ({ ...x, [k]: e.target.value })); if (k === 'title') setErr(''); };
+  const submit = (e) => {
+    e.preventDefault();
+    if (!f.title.trim()) return setErr('Escribí un título para la noticia.');
+    onSave({ ...f, title: f.title.trim(), photo: photos[0] || null });
+  };
+  return (
+    <FormSheet title={item ? 'Editar noticia' : 'Nueva noticia'} onClose={onClose} onSubmit={submit}>
+      <Segmented label="Tipo de noticia" value={f.kind} options={KINDS.map(k => [k, k])} onChange={(v) => setF(x => ({ ...x, kind: v }))} />
+      <Field id="n-title" label="Título" error={err}>
+        <input id="n-title" data-autofocus className={inputCls} value={f.title} onChange={set('title')} placeholder="Ej: Jornada de limpieza costera"
+          aria-invalid={!!err} aria-describedby={err ? 'n-title-e' : undefined} />
+      </Field>
+      <Field id="n-date" label="Cuándo" hint="Escribilo como quieras, por ejemplo: Sábado 7 de noviembre.">
+        <input id="n-date" className={inputCls} value={f.date} onChange={set('date')} placeholder="Ej: 13 al 15 de noviembre" />
+      </Field>
+      <Field id="n-body" label="Texto">
+        <textarea id="n-body" rows={4} className={`${inputCls} resize-none`} value={f.body} onChange={set('body')} placeholder="Contá de qué se trata en pocas líneas." />
+      </Field>
+      <div>
+        <p className="mb-2 font-semibold">Foto <span className="font-normal text-muted">(opcional)</span></p>
+        <PhotoPicker photos={photos} setPhotos={setPhotos} max={1} />
+      </div>
+    </FormSheet>
+  );
+}
+
+function VenueForm({ item, onSave, onClose }) {
+  const [f, setF] = useState(() => item || { id: `v${Date.now()}`, cat: 'gastronomia', name: '', what: '', when: '', about: '', photos: [] });
+  const [photos, setPhotos] = useState(item?.photos || []);
+  const [err, setErr] = useState('');
+  const set = (k) => (e) => { setF(x => ({ ...x, [k]: e.target.value })); if (k === 'name') setErr(''); };
+  const submit = (e) => {
+    e.preventDefault();
+    if (!f.name.trim()) return setErr('Escribí el nombre del local.');
+    onSave({ ...f, name: f.name.trim(), photos });
+  };
+  return (
+    <FormSheet title={item ? 'Editar local' : 'Nuevo local'} onClose={onClose} onSubmit={submit}>
+      <Segmented label="Categoría" value={f.cat} options={CATS.map(c => [c.id, c.title, c.Icon])} onChange={(v) => setF(x => ({ ...x, cat: v }))} />
+      <Field id="v-name" label="Nombre del local" error={err}>
+        <input id="v-name" data-autofocus className={inputCls} value={f.name} onChange={set('name')} placeholder="Ej: La Caleta"
+          aria-invalid={!!err} aria-describedby={err ? 'v-name-e' : undefined} />
+      </Field>
+      <Field id="v-what" label="Qué ofrece" hint="Una frase corta, es lo que se ve en la lista.">
+        <input id="v-what" className={inputCls} value={f.what} onChange={set('what')} placeholder="Ej: Pescado del día y mariscos" />
+      </Field>
+      <Field id="v-when" label="Días y horarios">
+        <input id="v-when" className={inputCls} value={f.when} onChange={set('when')} placeholder="Ej: Todos los días, 12 a 23 h" />
+      </Field>
+      <Field id="v-about" label="Sobre el lugar" hint="Opcional. Aparece junto a las fotos.">
+        <textarea id="v-about" rows={3} className={`${inputCls} resize-none`} value={f.about || ''} onChange={set('about')} />
+      </Field>
+      <div>
+        <p className="mb-2 font-semibold">Fotos del local</p>
+        <PhotoPicker photos={photos} setPhotos={setPhotos} hint="La primera foto es la portada. Con la estrella elegís otra." />
+      </div>
+    </FormSheet>
+  );
+}
+
+function Thumb({ photo, Icon }) {
+  return (
+    <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-2xl bg-bg text-muted">
+      {photo ? <div className="h-full w-full"><Photo p={photo} /></div> : <Icon size={24} strokeWidth={1.5} aria-hidden="true" />}
+    </div>
+  );
+}
+
+function Row({ thumb, meta, title, onEdit, onRemove, name }) {
+  return (
+    <motion.li layout="position" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.18 } }}
+      transition={{ duration: 0.3, ease: OUT }} className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-3xl bg-surface p-4 sm:p-5">
+      {thumb}
+      <div className="min-w-0 flex-1 basis-48">
+        {meta}
+        <h3 className="mt-1 font-display text-[1.25rem] leading-tight">{title}</h3>
+      </div>
+      <div className="flex gap-2">
+        <button type="button" onClick={onEdit} aria-label={`Editar ${name}`} className={`${btnGhost} !bg-bg hover:!bg-ink/10`}><I.Pencil size={17} /> Editar</button>
+        <button type="button" onClick={onRemove} aria-label={`Eliminar ${name}`} className={`${btnGhost} !bg-bg hover:!bg-ink/10`}><I.Trash2 size={17} /> Eliminar</button>
+      </div>
+    </motion.li>
+  );
+}
+
+function Empty({ text, action }) {
+  return <div className="rounded-3xl bg-surface p-8 text-center"><p className="text-muted">{text}</p><div className="mt-5">{action}</div></div>;
+}
+
+function ListHeader({ title, sub, onAdd, addLabel }) {
+  return (
+    <div className="flex flex-wrap items-end justify-between gap-4">
+      <div><h2 className="font-display text-[1.9rem] leading-none">{title}</h2><p className="mt-2 text-muted">{sub}</p></div>
+      <button type="button" onClick={onAdd} className={btnMain}><I.Plus size={19} /> {addLabel}</button>
+    </div>
+  );
+}
+
+function NewsManager({ news, setNews, notify }) {
+  const [edit, setEdit] = useState(null);   // null | 'new' | noticia
+  const save = (item) => {
+    setNews(ns => (ns.some(x => x.id === item.id) ? ns.map(x => (x.id === item.id ? item : x)) : [item, ...ns]));
+    setEdit(null); notify('Noticia guardada');
+  };
+  const remove = (n) => {
+    const at = news.findIndex(x => x.id === n.id);
+    setNews(ns => ns.filter(x => x.id !== n.id));
+    notify('Noticia eliminada', () => setNews(ns => { const c = [...ns]; c.splice(at, 0, n); return c; }));
+  };
+  const add = <button type="button" onClick={() => setEdit('new')} className={btnMain}><I.Plus size={19} /> Agregar noticia</button>;
+  return (
+    <div className="flex flex-col gap-6">
+      <ListHeader title="Noticias" sub="La primera noticia es la destacada del sitio." onAdd={() => setEdit('new')} addLabel="Agregar noticia" />
+      <ul className="m-0 flex list-none flex-col gap-3 p-0">
+        <AnimatePresence initial={false}>
+          {news.map(n => (
+            <Row key={n.id} name={n.title} title={n.title} onEdit={() => setEdit(n)} onRemove={() => remove(n)}
+              thumb={<Thumb photo={n.photo} Icon={I.Newspaper} />}
+              meta={<p className="flex items-center gap-2 text-[0.9375rem] text-muted"><span className={`h-2.5 w-2.5 rounded-full ${DOT[n.kind]}`} aria-hidden="true" /><span className="font-semibold text-ink">{n.kind}</span>{n.date && <span className="truncate">{n.date}</span>}</p>} />
+          ))}
+        </AnimatePresence>
+      </ul>
+      {news.length === 0 && <Empty text="Todavía no hay noticias publicadas." action={add} />}
+      <AnimatePresence>
+        {edit && <NewsForm key={edit === 'new' ? 'new' : edit.id} item={edit === 'new' ? null : edit} onSave={save} onClose={() => setEdit(null)} />}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function DirectoryManager({ venues, setVenues, notify }) {
+  const [edit, setEdit] = useState(null);
+  const [filter, setFilter] = useState('todos');
+  const shown = venues.filter(v => filter === 'todos' || v.cat === filter);
+  const save = (item) => {
+    setVenues(vs => (vs.some(x => x.id === item.id) ? vs.map(x => (x.id === item.id ? item : x)) : [item, ...vs]));
+    setEdit(null); notify('Local guardado');
+  };
+  const remove = (v) => {
+    const at = venues.findIndex(x => x.id === v.id);
+    setVenues(vs => vs.filter(x => x.id !== v.id));
+    notify('Local eliminado', () => setVenues(vs => { const c = [...vs]; c.splice(at, 0, v); return c; }));
+  };
+  const add = <button type="button" onClick={() => setEdit('new')} className={btnMain}><I.Plus size={19} /> Agregar local</button>;
+  return (
+    <div className="flex flex-col gap-6">
+      <ListHeader title="Directorio turístico" sub="Comercios y servicios que ve el turista en cada categoría." onAdd={() => setEdit('new')} addLabel="Agregar local" />
+      <Segmented label="Mostrar" value={filter} onChange={setFilter} options={[['todos', 'Todos'], ...CATS.map(c => [c.id, c.title, c.Icon])]} />
+      <ul className="m-0 flex list-none flex-col gap-3 p-0">
+        <AnimatePresence initial={false}>
+          {shown.map(v => {
+            const c = CATS.find(x => x.id === v.cat);
+            return (
+              <Row key={v.id} name={v.name} title={v.name} onEdit={() => setEdit(v)} onRemove={() => remove(v)}
+                thumb={<Thumb photo={v.photos[0]} Icon={c.Icon} />}
+                meta={<p className="flex items-center gap-2 text-[0.9375rem] text-muted"><c.Icon size={15} className="text-sea" aria-hidden="true" /><span className="font-semibold text-ink">{c.title}</span><span>{v.photos.length ? `${v.photos.length} ${v.photos.length > 1 ? 'fotos' : 'foto'}` : 'Sin fotos'}</span></p>} />
+            );
+          })}
+        </AnimatePresence>
+      </ul>
+      {shown.length === 0 && <Empty text="No hay locales en esta categoría." action={add} />}
+      <AnimatePresence>
+        {edit && <VenueForm key={edit === 'new' ? 'new' : edit.id} item={edit === 'new' ? null : edit} onSave={save} onClose={() => setEdit(null)} />}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function AdminGate({ onEnter, onExit }) {
+  return (
+    <div className="grid min-h-screen place-items-center bg-deep px-4 py-16 text-sand">
+      <motion.div className="w-full max-w-[28rem] rounded-[2rem] bg-bg p-8 text-ink sm:p-10" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: OUT }}>
+        <span className="grid h-14 w-14 place-items-center rounded-full bg-surface text-sea"><I.Lock size={26} strokeWidth={1.6} aria-hidden="true" /></span>
+        <h1 className="mt-6 font-display text-[2.2rem] leading-[1.05]">Panel de la Junta Vecinal</h1>
+        <p className="mt-4 text-muted">Desde acá publicás noticias y cargás los comercios del pueblo. Lo que guardes se ve en el sitio al instante.</p>
+        <button type="button" onClick={onEnter} data-autofocus className={`${btnMain} mt-8 w-full`}>Entrar al panel</button>
+        <button type="button" onClick={onExit} className={`${btnGhost} mt-3 w-full`}><I.ArrowLeft size={18} /> Volver al sitio</button>
+        <p className="mt-6 text-[0.9375rem] text-muted">Demostración: en la versión final se pide usuario y contraseña.</p>
+      </motion.div>
+    </div>
+  );
+}
+
+function Admin({ news, setNews, venues, setVenues, notify, onExit }) {
+  const [tab, setTab] = useState('noticias');
+  const tabs = [['noticias', 'Noticias', news.length, I.Newspaper], ['directorio', 'Directorio', venues.length, I.Store]];
+  return (
+    <div className="min-h-screen bg-bg">
+      <header className="bg-deep text-sand" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+        <div className="gutter">
+          <div className="wrap flex h-[4.25rem] items-center justify-between gap-4">
+            <span className="inline-flex items-center gap-4"><Logo /><span className="hidden text-sand/70 sm:inline">Panel de la Junta</span></span>
+            <button type="button" onClick={onExit} className="press inline-flex min-h-[44px] items-center gap-2 rounded-full bg-sand/10 px-5 font-semibold hover:bg-sand/20"><I.Eye size={17} /> Ver el sitio</button>
+          </div>
+        </div>
+      </header>
+      <div className="gutter">
+        <div className="wrap py-12 md:py-16">
+          <h1 className="font-display text-[clamp(2rem,4.4vw,3.4rem)] leading-[1.05] tracking-[-0.015em]">Hola, Junta Vecinal</h1>
+          <p className="mt-4 max-w-[56ch] text-[1.0625rem] text-muted">Elegí qué querés cambiar. Cada cambio se ve en el sitio público apenas lo guardás, y si borrás algo por error podés deshacerlo.</p>
+          <div role="tablist" aria-label="Secciones del panel" className="mt-10 inline-flex max-w-full rounded-full bg-surface p-1">
+            {tabs.map(([id, text, count, Icon]) => (
+              <button key={id} type="button" role="tab" id={`tab-${id}`} aria-selected={tab === id} aria-controls={`panel-${id}`} onClick={() => setTab(id)}
+                className={`press relative inline-flex min-h-[48px] items-center gap-2 rounded-full px-5 font-semibold ${tab === id ? 'text-sand' : 'text-ink hover:text-sea'}`}>
+                {tab === id && <motion.span layoutId="admin-tab" className="absolute inset-0 rounded-full bg-deep" transition={SPRING} />}
+                <span className="relative inline-flex items-center gap-2"><Icon size={18} aria-hidden="true" />{text}<span className={`text-[0.875rem] ${tab === id ? 'text-sand/70' : 'text-muted'}`}>{count}</span></span>
+              </button>
+            ))}
+          </div>
+          <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`} className="mt-10 max-w-[56rem]">
+            {tab === 'noticias'
+              ? <NewsManager news={news} setNews={setNews} notify={notify} />
+              : <DirectoryManager venues={venues} setVenues={setVenues} notify={notify} />}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Toast({ t, onClose }) {
+  return (
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[60] flex justify-center px-4" style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}>
+      <AnimatePresence>
+        {t && (
+          <motion.div key={t.id} role="status" initial={{ opacity: 0, y: 20, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, transition: { duration: 0.15 } }} transition={SPRING}
+            className="pointer-events-auto flex items-center gap-3 rounded-full bg-deep py-2 pl-6 pr-2 text-sand shadow-[0_18px_50px_-18px_rgb(0_0_0/.5)]">
+            <span className="font-semibold">{t.msg}</span>
+            {t.undo
+              ? <button type="button" onClick={() => { t.undo(); onClose(); }} className="press inline-flex min-h-[44px] items-center gap-2 rounded-full bg-sand/10 px-4 font-semibold hover:bg-sand/20"><I.Undo2 size={16} /> Deshacer</button>
+              : <button type="button" onClick={onClose} aria-label="Cerrar aviso" className="press grid h-11 w-11 place-items-center rounded-full hover:bg-sand/10"><I.X size={16} /></button>}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function App() {
+  const [view, setView] = useState('sitio');          // 'sitio' | 'admin': enrutamiento simulado
+  const [adminIn, setAdminIn] = useState(false);
+  const [moment, setMoment] = useState('atardecer');
+  const [scrolled, setScrolled] = useState(false);
+  const [cat, setCat] = useState(null);
+  const [news, setNews] = useState(NEWS_SEED);
+  const [venues, setVenues] = useState(VENUES_SEED);
+  const [toast, setToast] = useState(null);
+  const timer = useRef(0);
+  const notify = (msg, undo) => {
+    clearTimeout(timer.current);
+    setToast({ id: Date.now(), msg, undo });
+    timer.current = setTimeout(() => setToast(null), 6000);
+  };
+  const show = (v) => { setCat(null); setToast(null); setView(v); window.scrollTo({ top: 0, behavior: 'instant' }); };
+  useEffect(() => {
+    const f = () => setScrolled(window.scrollY > 24);
+    f(); window.addEventListener('scroll', f, { passive: true });
+    return () => window.removeEventListener('scroll', f);
+  }, []);
+  return (
+    <>
+      <AnimatePresence mode="wait" initial={false}>
+        {view === 'sitio' ? (
+          <motion.div key="sitio" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+            <Header scrolled={scrolled} />
+            <main>
+              <Hero momentId={moment} setMoment={setMoment} />
+              <Intro />
+              <Directory onOpen={setCat} />
+              <Gallery />
+              <NewsGrid news={news} onAdmin={() => show('admin')} />
+            </main>
+            <Footer onAdmin={() => show('admin')} />
+          </motion.div>
+        ) : (
+          <motion.div key="admin" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+            {adminIn
+              ? <Admin news={news} setNews={setNews} venues={venues} setVenues={setVenues} notify={notify} onExit={() => show('sitio')} />
+              : <AdminGate onEnter={() => setAdminIn(true)} onExit={() => show('sitio')} />}
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>{cat && <Drawer key={cat.id} cat={cat} venues={venues} onClose={() => setCat(null)} />}</AnimatePresence>
+      <Toast t={toast} onClose={() => setToast(null)} />
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<MotionConfig reducedMotion="user"><App /></MotionConfig>);
+</script>
