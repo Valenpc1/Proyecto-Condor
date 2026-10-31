@@ -136,7 +136,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
 
 <script type="text/babel" data-presets="react">
-const { useState, useEffect, useRef } = React;
+const { useState, useEffect, useRef, useId } = React;
 const { motion, AnimatePresence, MotionConfig, useMotionValue, useSpring, useTransform } = Motion;
 const I = LucideReact;
 
@@ -182,7 +182,7 @@ const MOMENTS = [
     stars: 0, cloud: 0.8, cloudC: '#F58D88', sun: { c: '#FFB067', r: 54, y: 640 }, glow: '#FFB06A', glowO: 0.95,
     beam: 0, birds: 1, refl: { c: '#FFC07A', o: 0.7 } },
   { id: 'noche', label: 'Noche', Icon: I.Moon,
-    text: 'El faro, inaugurado en 1887, vuelve a barrer la costa con su luz.',
+    text: 'El faro de 1887, recortado contra la noche de la costa.',
     sky: ['#050E1A', '#0E2538', '#1C4559'], sea: ['#16384B', '#06151F'], sand: '#2A3441', foam: '#8FB4C4',
     cliff: ['#3B3A44', '#17171E'], tower: '#9CA6B8', lantern: '#FFEBA8', veg: '#2C3328',
     stars: 1, cloud: 0.35, cloudC: '#2B4458', sun: { c: '#F3EFDC', r: 32, y: 165 }, glow: '#9DC4DA', glowO: 0.35,
@@ -215,7 +215,7 @@ const CATS = [
     bullets: ['Visita al faro', 'Avistaje de loros barranqueros', 'Pesca y kitesurf'],
     spots: [
       ['Visita al faro', 'Recorrido y vistas de toda la costa', 'Consultar horarios'],
-      ['Avistaje de loros', 'Mirador habilitado de la colonia', 'Mejor al amanecer y atardecer'],
+      ['Avistaje de loros', 'Mirador habilitado de la colonia', 'Suele haber más movimiento al amanecer y al atardecer'],
       ['Pesca costera', 'Salidas con guías locales', 'Según marea'],
       ['Kitesurf y carrovelismo', 'Escuelas y alquiler de equipo', 'Temporada de verano'],
     ] },
@@ -456,7 +456,7 @@ function Header({ scrolled }) {
             {NAV.map(([t, id]) => <a key={id} href={`#${id}`} onClick={e => go(e, id)} className={link}>{t}</a>)}
             <a href={`https://wa.me/${WHATSAPP}`} target="_blank" rel="noreferrer"
               className="press ml-3 inline-flex min-h-[44px] items-center gap-2 rounded-full bg-coral px-5 text-[0.9375rem] font-semibold text-[#0E2B33] hover:brightness-105">
-              <I.MessageCircle size={17} /> WhatsApp
+              <I.MessageCircle size={17} aria-hidden="true" /> WhatsApp{NEWTAB}
             </a>
           </nav>
           <button type="button" className="press -mr-2 grid h-11 w-11 place-items-center rounded-full md:hidden"
@@ -486,7 +486,7 @@ function Header({ scrolled }) {
 
 /* ───────────────────────── Secciones ───────────────────────── */
 
-function Hero({ momentId, setMoment }) {
+function Hero({ momentId, setMoment, consent }) {
   const m = MOMENTS.find(x => x.id === momentId);
   const narrow = useMedia('(max-width: 767px)');
   const mx = useMotionValue(0);
@@ -501,8 +501,8 @@ function Hero({ momentId, setMoment }) {
         <Scene m={m} narrow={narrow} far={far} near={near} />
       </div>
       <div className="absolute inset-0 hidden md:block" style={{ background:
-        'linear-gradient(to bottom, rgba(4,24,32,.42), transparent 22%), linear-gradient(to top, rgba(4,24,32,.7), rgba(4,24,32,.22) 40%, transparent 64%), linear-gradient(to right, rgba(4,24,32,.4), transparent 52%)' }} />
-      <div className="absolute inset-x-0 top-0 h-28 md:hidden" style={{ background: 'linear-gradient(to bottom, rgba(4,24,32,.5), transparent)' }} />
+        'linear-gradient(to bottom, rgba(4,24,32,.8), rgba(4,24,32,.5) 8%, transparent 26%), linear-gradient(to top, rgba(4,24,32,.7), rgba(4,24,32,.22) 40%, transparent 64%), linear-gradient(to right, rgba(4,24,32,.4), transparent 52%)' }} />
+      <div className="absolute inset-x-0 top-0 h-28 md:hidden" style={{ background: 'linear-gradient(to bottom, rgba(4,24,32,.72), transparent)' }} />
       <div className="absolute inset-x-0 top-[calc(min(62svh,34rem)-9rem)] h-36 bg-gradient-to-b from-transparent to-deep md:hidden" />
 
       <div className="gutter relative">
@@ -512,7 +512,7 @@ function Hero({ momentId, setMoment }) {
               Mar, acantilados y miles de loros
             </motion.h1>
             <motion.p {...rise(1)} className="mt-6 max-w-[44ch] text-[clamp(1.05rem,1.4vw,1.25rem)] leading-relaxed text-sand/90">
-              El Cóndor es una villa balnearia de Río Negro, a 30 km de Viedma. Tiene un faro de 1887, playa abierta y la colonia de loros barranqueros más grande del mundo.
+              El Cóndor es una villa balnearia de Río Negro, a unos 30 km de Viedma. Tiene un faro de 1887, playa abierta y una colonia de loros barranqueros considerada la más grande del mundo.
             </motion.p>
             <motion.div {...rise(2)} className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-4">
               <a href="#directorio" onClick={e => go(e, 'directorio')}
@@ -525,7 +525,7 @@ function Hero({ momentId, setMoment }) {
             </motion.div>
           </div>
           <motion.div {...rise(3)}><TimeSwitch value={momentId} onChange={setMoment} /></motion.div>
-          <motion.div {...rise(4)} className="md:absolute md:left-0 md:top-24"><Conditions /></motion.div>
+          <motion.div {...rise(4)} className="md:absolute md:left-0 md:top-24"><Conditions allowed={consent.weather} onAllow={() => consent.save(true)} /></motion.div>
         </div>
       </div>
     </section>
@@ -533,7 +533,7 @@ function Hero({ momentId, setMoment }) {
 }
 
 function Intro() {
-  const facts = [['30 km', 'de Viedma por la Ruta Provincial 1'], ['1887', 'el año del faro, el más antiguo de la costa patagónica'], ['Sep a mar', 'temporada de la colonia de loros barranqueros']];
+  const facts = [['30 km', 'aproximados desde Viedma por la Ruta Provincial 1'], ['1887', 'el año del faro, considerado el más antiguo de la costa patagónica'], ['Sep a mar', 'temporada aproximada de la colonia de loros barranqueros']];
   return (
     <section id="villa" className="py-24 md:py-40">
       <div className="gutter">
@@ -799,8 +799,8 @@ const ART = {
   ),
 };
 
-function Photo({ p }) {
-  if (p.src) return <img src={p.src} alt={p.cap || ''} draggable="false" className="h-full w-full object-cover" />;
+function Photo({ p, decorative = false }) {
+  if (p.src) return <img src={p.src} alt={decorative ? '' : p.cap || ''} draggable="false" className="h-full w-full object-cover" />;
   const A = ART[p.art];
   return A ? <A /> : null;
 }
@@ -833,29 +833,29 @@ function Sheet({ labelId, onClose, wide = false, children }) {
     <div className="fixed inset-0 z-50">
       <motion.div className="absolute inset-0 bg-deep/60" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
         exit={{ opacity: 0, transition: { duration: 0.2 } }} transition={{ duration: 0.25 }} onClick={onClose} />
-      <motion.aside ref={ref} role="dialog" aria-modal="true" aria-labelledby={labelId}
+      <motion.div ref={ref} role="dialog" aria-modal="true" aria-labelledby={labelId}
         className={`absolute right-0 top-0 flex h-full w-full flex-col overflow-y-auto bg-bg text-ink ${wide ? 'max-w-[36rem]' : 'max-w-[30rem]'}`}
         style={{ paddingTop: 'env(safe-area-inset-top, 0px)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
         initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%', transition: { duration: 0.26, ease: [0.32, 0.72, 0, 1] } }}
         transition={{ type: 'spring', duration: 0.5, bounce: 0 }}>
         {children}
-      </motion.aside>
+      </motion.div>
     </div>
   );
 }
 
-function Modal({ label, onClose, children }) {
+function Modal({ label, onClose, size = 'max-w-3xl', children }) {
   const ref = useRef(null);
   useDialog(ref, onClose);
   return (
     <div className="fixed inset-0 z-50 grid place-items-center p-4">
       <motion.div className="absolute inset-0 bg-deep/85" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
         exit={{ opacity: 0, transition: { duration: 0.15 } }} transition={{ duration: 0.25 }} onClick={onClose} />
-      <motion.div ref={ref} role="dialog" aria-modal="true" aria-label={label} className="relative w-full max-w-3xl"
+      <motion.div ref={ref} role="dialog" aria-modal="true" aria-label={label} className={`relative w-full ${size}`}
         initial={{ opacity: 0, scale: 0.96, filter: 'blur(4px)' }} animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
         exit={{ opacity: 0, scale: 0.98, transition: { duration: 0.15 } }} transition={{ duration: 0.3, ease: OUT }}>
         <button type="button" onClick={onClose} aria-label="Cerrar"
-          className="press absolute right-3 top-3 z-20 grid h-11 w-11 place-items-center rounded-full bg-deep/55 text-sand backdrop-blur-md"><I.X size={20} /></button>
+          className="press absolute right-3 top-3 z-20 grid h-11 w-11 place-items-center rounded-full bg-deep/65 text-sand backdrop-blur-md"><I.X size={20} /></button>
         {children}
       </motion.div>
     </div>
@@ -875,7 +875,7 @@ function Carousel({ photos, start = 0, dark = false }) {
     center: { x: 0, opacity: 1 },
     exit: (d) => ({ x: d > 0 ? '-30%' : '30%', opacity: 0 }),
   };
-  const arrow = 'press absolute top-1/2 z-10 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-deep/50 text-sand backdrop-blur-md';
+  const arrow = 'press absolute top-1/2 z-10 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-deep/65 text-sand backdrop-blur-md';
   return (
     <div role="group" aria-roledescription="carrusel" aria-label="Fotos" tabIndex={0} className="rounded-3xl"
       onKeyDown={dark ? undefined : arrows}>
@@ -937,7 +937,7 @@ function VenueDetail({ v, cat, onBack, onClose }) {
         <p className="mt-5 flex items-center gap-2 font-medium text-sea"><I.Clock size={16} aria-hidden="true" />{v.when}</p>
         <a href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Hola, quiero consultar por ${v.name}`)}`} target="_blank" rel="noreferrer"
           className="press mt-8 inline-flex min-h-[52px] items-center gap-2.5 rounded-full bg-coral px-7 font-semibold text-[#0E2B33] hover:brightness-105">
-          <I.MessageCircle size={19} /> Consultar por WhatsApp
+          <I.MessageCircle size={19} aria-hidden="true" /> Consultar por WhatsApp{NEWTAB}
         </a>
       </div>
     </motion.div>
@@ -1033,7 +1033,7 @@ function NewsCard({ n, big, className = '', delay = 0 }) {
   );
   const link = (
     <a href="#novedades" onClick={e => e.preventDefault()} className="inline-flex items-center gap-2 font-semibold after:absolute after:inset-0 after:content-['']">
-      {n.kind === 'Evento' ? 'Ver programa' : 'Leer más'} <I.ArrowUpRight size={18} className="news-go" aria-hidden="true" />
+      {n.kind === 'Evento' ? 'Ver programa' : 'Leer más'}<span className="sr-only">: {n.title}</span> <I.ArrowUpRight size={18} className="news-go" aria-hidden="true" />
     </a>
   );
   if (big) {
@@ -1128,7 +1128,7 @@ function Gallery() {
                   className="group relative block w-full overflow-hidden rounded-[1.75rem] bg-deep text-left" style={{ aspectRatio: g.ratio }}>
                   <div className="h-full w-full transition-transform duration-[900ms] ease-[cubic-bezier(.23,1,.32,1)] group-hover:scale-[1.05]"><Photo p={g} /></div>
                   <span className="absolute inset-x-0 bottom-0 p-5 pt-14 text-[0.9375rem] font-semibold text-sand"
-                    style={{ background: 'linear-gradient(to top, rgba(4,24,32,.65), transparent)' }}>{g.cap}</span>
+                    style={{ background: 'linear-gradient(to top, rgba(4,24,32,.88), rgba(4,24,32,.72) 50%, transparent)' }}>{g.cap}</span>
                 </motion.button>
               </Reveal>
             ))}
@@ -1195,32 +1195,38 @@ function tideAt(t) {
 }
 const hhmm = new Intl.DateTimeFormat('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false });
 
-function useConditions() {
+function useConditions(enabled) {
   const [d, setD] = useState({ weather: null, tide: null });
   useEffect(() => {
+    if (!enabled) { setD({ weather: null, tide: null }); return undefined; }   // sin permiso no se consulta a ningún tercero
     const ac = new AbortController();
     const run = () => loadConditions(ac.signal).then(r => { if (!ac.signal.aborted) setD(r); });
     run();
     const id = setInterval(run, 600000);
     return () => { ac.abort(); clearInterval(id); };
-  }, []);
+  }, [enabled]);
   return d;
 }
 
-function Conditions() {
+function Conditions({ allowed, onAllow }) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => { const id = setInterval(() => setNow(Date.now()), 60000); return () => clearInterval(id); }, []);
-  const d = useConditions();
+  const d = useConditions(allowed);
   const w = d.weather || SAMPLE;
   const t = d.tide ? seaAt(d.tide, now) : tideAt(now);
   const state = t.level > 0.88 ? 'Pleamar' : t.level < 0.12 ? 'Bajamar' : t.rising ? 'Subiendo' : 'Bajando';
-  const live = d.weather && d.tide ? 'En vivo · Open-Meteo' : d.weather ? 'Clima en vivo · marea estimada' : 'Datos de ejemplo, sin conexión al servicio.';
-  const label = 'flex items-center gap-1.5 text-[0.8125rem] font-semibold text-sand/80';
+  const meteo = <a href="https://open-meteo.com/" target="_blank" rel="noreferrer" className="font-semibold underline decoration-sand/50 underline-offset-2 hover:decoration-sand">Open-Meteo{NEWTAB}</a>;
+  const source = !allowed
+    ? <>Datos de ejemplo. <button type="button" onClick={onAllow} className="font-semibold underline decoration-sand/50 underline-offset-2 hover:decoration-sand">Activar clima en vivo</button></>
+    : d.weather && d.tide ? <>En vivo · {meteo}</>
+    : d.weather ? <>Clima en vivo ({meteo}) · marea estimada</>
+    : 'Datos de ejemplo: no se pudo conectar con el servicio.';
+  const label = 'flex items-center gap-1.5 text-[0.8125rem] font-semibold text-sand/90';
   const value = 'mt-1.5 font-display text-[1.5rem] leading-none sm:text-[1.75rem]';
-  const sub = 'mt-1.5 text-[0.8125rem] leading-snug text-sand/80';
+  const sub = 'mt-1.5 text-[0.8125rem] leading-snug text-sand/90';
   return (
     <section aria-label="Clima y mareas ahora" className="glass w-full max-w-[26rem] rounded-3xl p-4 text-sand sm:p-5 md:w-[24rem]"
-      style={{ background: 'rgb(var(--deep) / .36)' }}>
+      style={{ background: 'rgb(var(--deep) / .62)' }}>
       <div className="grid grid-cols-[1fr_1fr_1.4fr] gap-3 sm:gap-4">
         <div className="min-w-0">
           <p className={label}><I.Thermometer size={15} aria-hidden="true" />Temperatura</p>
@@ -1248,14 +1254,14 @@ function Conditions() {
                 {state}
                 {state !== 'Pleamar' && state !== 'Bajamar' && (t.rising ? <I.ArrowUp size={14} className="shrink-0" aria-hidden="true" /> : <I.ArrowDown size={14} className="shrink-0" aria-hidden="true" />)}
               </p>
-              <p className="mt-1.5 text-[0.8125rem] text-sand/80">{t.label}</p>
+              <p className="mt-1.5 text-[0.8125rem] text-sand/90">{t.label}</p>
             </div>
           </div>
           <p className={sub}>{t.nextHigh ? 'Pleamar' : 'Bajamar'} a las {hhmm.format(t.next)}</p>
         </div>
       </div>
-      <p className="mt-3 flex items-center gap-2 text-[0.75rem] text-sand/60">
-        {d.weather && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#8ED0D8]" aria-hidden="true" />}{live}
+      <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.8125rem] text-sand/90">
+        {allowed && d.weather && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#8ED0D8]" aria-hidden="true" />}{source}
       </p>
     </section>
   );
@@ -1282,7 +1288,7 @@ function InstagramFeed() {
                 </div>
                 <a href={IG_URL} target="_blank" rel="noreferrer"
                   className="press inline-flex min-h-[48px] items-center gap-2 rounded-full bg-coral px-6 font-semibold text-[#0E2B33] hover:brightness-105">
-                  <I.Instagram size={18} /> Seguir
+                  <I.Instagram size={18} aria-hidden="true" /> Seguir<span className="sr-only"> a @junta.vecinal.247 en Instagram (se abre en una pestaña nueva)</span>
                 </a>
               </div>
             </Reveal>
@@ -1290,7 +1296,7 @@ function InstagramFeed() {
           <ul className="m-0 mt-14 grid list-none grid-cols-2 gap-3 p-0 md:mt-20 md:grid-cols-4 md:gap-5">
             {IG_POSTS.map(([art, cap], i) => (
               <Reveal as="li" key={art} delay={0.06 * i}>
-                <motion.a href={IG_URL} target="_blank" rel="noreferrer" aria-label={`Ver en Instagram: ${cap}`} whileTap={{ scale: 0.985 }} transition={SPRING}
+                <motion.a href={IG_URL} target="_blank" rel="noreferrer" aria-label={`Ver en Instagram: ${cap} (se abre en una pestaña nueva)`} whileTap={{ scale: 0.985 }} transition={SPRING}
                   className="group relative block aspect-square overflow-hidden rounded-[1.75rem] bg-deep">
                   <div className="h-full w-full transition-transform duration-[900ms] ease-[cubic-bezier(.23,1,.32,1)] group-hover:scale-[1.05]"><Photo p={{ art }} /></div>
                   <span className="absolute inset-0 grid place-items-center bg-deep/40 text-sand opacity-0 transition-opacity duration-300 group-hover:opacity-100"><I.Instagram size={30} aria-hidden="true" /></span>
@@ -1305,9 +1311,11 @@ function InstagramFeed() {
   );
 }
 
-function Footer({ onAdmin }) {
+function Footer({ onAdmin, onLegal, onPrefs }) {
   const wa = `https://wa.me/${WHATSAPP}`;
   const soc = 'press grid h-12 w-12 place-items-center rounded-full bg-sand/10 text-sand hover:bg-sand/20';
+  const inline = 'font-semibold underline decoration-sand/40 decoration-2 underline-offset-[6px] hover:decoration-sand';
+  const legalLink = `press inline-flex min-h-[44px] items-center text-sand/90 hover:text-sand ${inline}`;
   return (
     <footer id="contacto" className="relative bg-bg text-sand">
       <svg viewBox="0 0 1440 80" preserveAspectRatio="none" className="-mb-px block h-12 w-full text-deep md:h-20" aria-hidden="true" focusable="false">
@@ -1320,34 +1328,46 @@ function Footer({ onAdmin }) {
               <h2 className="max-w-[16ch] font-display text-[clamp(2.2rem,4.4vw,3.8rem)] leading-[1.05] tracking-[-0.015em]">¿Venís? Escribinos y te ayudamos a armar el viaje</h2>
               <a href={wa} target="_blank" rel="noreferrer"
                 className="press mt-9 inline-flex min-h-[56px] items-center gap-3 rounded-full bg-coral px-8 text-[1.0625rem] font-semibold text-[#0E2B33] hover:brightness-105">
-                <I.MessageCircle size={21} /> Escribir por WhatsApp
+                <I.MessageCircle size={21} aria-hidden="true" /> Escribir por WhatsApp{NEWTAB}
               </a>
-              <p className="mt-4 text-sand/70">+54 2920 12-3456</p>
+              <p className="mt-4 text-sand/75">{ENTITY.phone}</p>
+              <p className="mt-3 max-w-[42ch] text-[0.9375rem] leading-snug text-sand/75">
+                Al escribirnos por WhatsApp usamos tu nombre y tu mensaje solo para responderte. Más en la <button type="button" onClick={() => onLegal('privacidad')} className={inline}>Política de privacidad</button>.
+              </p>
             </Reveal>
             <Reveal delay={0.08} className="grid content-start gap-10 sm:grid-cols-2 md:col-span-5 md:col-start-8">
               <div>
                 <h3 className="font-display text-[1.375rem]">Ubicación</h3>
-                <p className="mt-3 flex gap-3 text-sand/80"><I.MapPin size={20} className="mt-0.5 shrink-0 text-coral" aria-hidden="true" />Balneario El Cóndor, Río Negro. A 30 km de Viedma por la Ruta Provincial 1.</p>
+                <p className="mt-3 flex gap-3 text-sand/85"><I.MapPin size={20} className="mt-0.5 shrink-0 text-coral" aria-hidden="true" />Balneario El Cóndor, Río Negro. A unos 30 km de Viedma por la Ruta Provincial 1.</p>
                 <a href="https://www.google.com/maps/search/?api=1&query=Balneario+El+C%C3%B3ndor+R%C3%ADo+Negro" target="_blank" rel="noreferrer"
-                  className="mt-4 inline-flex items-center gap-2 font-semibold underline decoration-sand/40 decoration-2 underline-offset-[6px] hover:decoration-sand">Abrir en el mapa <I.ArrowUpRight size={17} aria-hidden="true" /></a>
+                  className="mt-4 inline-flex min-h-[44px] items-center gap-2 font-semibold underline decoration-sand/40 decoration-2 underline-offset-[6px] hover:decoration-sand">Abrir en el mapa <I.ArrowUpRight size={17} aria-hidden="true" />{NEWTAB}</a>
+                <p className="mt-3 text-[0.9375rem] leading-snug text-sand/75">Titular del sitio: {ENTITY.name}.{ENTITY.cuit && ` CUIT ${ENTITY.cuit}.`}</p>
               </div>
               <div>
                 <h3 className="font-display text-[1.375rem]">Contacto</h3>
-                <p className="mt-3 flex gap-3 text-sand/80"><I.Mail size={20} className="mt-0.5 shrink-0 text-coral" aria-hidden="true" />contacto@elcondor.com.ar</p>
+                <p className="mt-3 flex gap-3 text-sand/85"><I.Mail size={20} className="mt-0.5 shrink-0 text-coral" aria-hidden="true" />{ENTITY.email}</p>
                 <h3 className="mt-8 font-display text-[1.375rem]">Redes</h3>
                 <div className="mt-3 flex items-center gap-3">
-                  <motion.a whileHover={{ y: -3 }} transition={SPRING} href={IG_URL} target="_blank" rel="noreferrer" aria-label="Instagram: @junta.vecinal.247" className={soc}><I.Instagram size={21} /></motion.a>
-                  <a href={IG_URL} target="_blank" rel="noreferrer" className="press inline-flex min-h-[48px] items-center font-semibold text-sand/85 underline decoration-sand/40 decoration-2 underline-offset-[6px] hover:text-sand hover:decoration-sand">@junta.vecinal.247</a>
+                  <motion.a whileHover={{ y: -3 }} transition={SPRING} href={IG_URL} target="_blank" rel="noreferrer" aria-label="Instagram: @junta.vecinal.247 (se abre en una pestaña nueva)" className={soc}><I.Instagram size={21} aria-hidden="true" /></motion.a>
+                  <a href={IG_URL} target="_blank" rel="noreferrer" className="press inline-flex min-h-[48px] items-center font-semibold text-sand/90 underline decoration-sand/40 decoration-2 underline-offset-[6px] hover:text-sand hover:decoration-sand">@junta.vecinal.247{NEWTAB}</a>
                 </div>
               </div>
             </Reveal>
           </div>
-          <p aria-hidden="true" className="mt-20 select-none whitespace-nowrap text-center font-display text-[clamp(4rem,16.5vw,17rem)] leading-[0.78] tracking-[-0.03em] text-sand/[0.09] md:mt-28">El Cóndor</p>
-          <div className="mt-10 flex flex-col justify-between gap-2 text-[0.9375rem] text-sand/65 sm:flex-row">
-            <p>© 2026 Junta Vecinal El Cóndor. Todos los derechos reservados.</p>
+          <p aria-hidden="true" className="mt-20 select-none whitespace-nowrap text-center font-display text-[clamp(4rem,16.5vw,17rem)] leading-[0.78] tracking-[-0.03em] text-sand/[0.09] before:content-['El_Cóndor'] md:mt-28" />
+          <nav aria-label="Información legal" className="mt-10">
+            <ul className="m-0 flex list-none flex-wrap gap-x-7 gap-y-1 p-0">
+              {[['privacidad', 'Política de privacidad'], ['cookies', 'Política de cookies'], ['terminos', 'Términos y condiciones']].map(([id, t]) => (
+                <li key={id}><button type="button" onClick={() => onLegal(id)} className={legalLink}>{t}</button></li>
+              ))}
+              <li><button type="button" onClick={onPrefs} className={legalLink}>Preferencias de cookies</button></li>
+            </ul>
+          </nav>
+          <div className="mt-6 flex flex-col justify-between gap-2 text-[0.9375rem] text-sand/75 sm:flex-row">
+            <p>© 2026 {ENTITY.name}. Todos los derechos reservados.</p>
             <p className="flex flex-wrap items-center gap-x-6 gap-y-2">
               <span>Diseño por Web del Cóndor</span>
-              <button type="button" onClick={onAdmin} className="press inline-flex min-h-[44px] items-center gap-2 font-semibold text-sand/80 hover:text-sand"><I.Lock size={15} aria-hidden="true" /> Acceso Junta Vecinal</button>
+              <button type="button" onClick={onAdmin} className="press inline-flex min-h-[44px] items-center gap-2 font-semibold text-sand/85 hover:text-sand"><I.Lock size={15} aria-hidden="true" /> Acceso Junta Vecinal</button>
             </p>
           </div>
         </div>
@@ -1393,7 +1413,7 @@ function Field({ id, label, hint, error, children }) {
 }
 
 function PhotoPicker({ photos, setPhotos, max = 8, hint }) {
-  const ref = useRef(null);
+  const ref = useRef(null), uid = useId();
   const [busy, setBusy] = useState(false);
   const add = async (e) => {
     const files = [...e.target.files].slice(0, max - photos.length);
@@ -1406,18 +1426,26 @@ function PhotoPicker({ photos, setPhotos, max = 8, hint }) {
     } catch (_) { /* un archivo que no es imagen simplemente se ignora */ }
     setBusy(false);
   };
-  const mini = 'press grid h-10 w-10 place-items-center rounded-full bg-deep/70 text-sand backdrop-blur-md hover:bg-deep';
+  const setCap = (k, cap) => setPhotos(ps => ps.map((q, j) => (j === k ? { ...q, cap } : q)));
+  const small = `${btnGhost} !bg-bg !px-3`;
   return (
     <div>
       {photos.length > 0 && (
-        <ul className="m-0 mb-3 grid list-none grid-cols-3 gap-3 p-0">
+        <ul className="m-0 mb-3 flex list-none flex-col gap-3 p-0">
           {photos.map((p, k) => (
-            <li key={k} className="relative aspect-square overflow-hidden rounded-2xl bg-deep">
-              <Photo p={p} />
-              {k === 0 && <span className="absolute left-2 top-2 rounded-full bg-deep/70 px-2.5 py-1 text-[0.75rem] font-semibold text-sand">Portada</span>}
-              <div className="absolute inset-x-1.5 bottom-1.5 flex items-end justify-between">
-                {k > 0 ? <button type="button" aria-label="Usar como portada" onClick={() => setPhotos(ps => [ps[k], ...ps.filter((_, j) => j !== k)])} className={mini}><I.Star size={16} /></button> : <span />}
-                <button type="button" aria-label="Quitar foto" onClick={() => setPhotos(ps => ps.filter((_, j) => j !== k))} className={mini}><I.Trash2 size={16} /></button>
+            <li key={k} className="flex items-start gap-3 rounded-2xl bg-surface p-3">
+              <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-deep">
+                <Photo p={p} decorative />
+                {k === 0 && <span className="absolute left-1.5 top-1.5 rounded-full bg-deep/75 px-2 py-0.5 text-[0.75rem] font-semibold text-sand">Portada</span>}
+              </div>
+              <div className="min-w-0 flex-1">
+                <label htmlFor={`${uid}-${k}`} className="block text-[0.875rem] font-semibold">Descripción de la foto {k + 1}</label>
+                <input id={`${uid}-${k}`} className={`${inputCls} mt-1 !bg-bg !py-2.5 text-[0.9375rem]`} value={p.cap || ''} onChange={e => setCap(k, e.target.value)}
+                  placeholder="Ej: Fachada del local sobre la costanera" />
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {k > 0 && <button type="button" onClick={() => setPhotos(ps => [ps[k], ...ps.filter((_, j) => j !== k)])} className={small}><I.Star size={15} aria-hidden="true" /> Usar de portada</button>}
+                  <button type="button" onClick={() => setPhotos(ps => ps.filter((_, j) => j !== k))} className={small}><I.Trash2 size={15} aria-hidden="true" /> Quitar<span className="sr-only"> la foto {k + 1}</span></button>
+                </div>
               </div>
             </li>
           ))}
@@ -1425,11 +1453,12 @@ function PhotoPicker({ photos, setPhotos, max = 8, hint }) {
       )}
       {photos.length < max && (
         <>
-          <button type="button" disabled={busy} onClick={() => ref.current.click()} className={btnGhost}><I.ImagePlus size={18} />{busy ? 'Cargando…' : photos.length ? 'Agregar más fotos' : 'Elegir fotos'}</button>
+          <button type="button" disabled={busy} onClick={() => ref.current.click()} className={btnGhost}><I.ImagePlus size={18} aria-hidden="true" />{busy ? 'Cargando…' : photos.length ? 'Agregar más fotos' : 'Elegir fotos'}</button>
           <input ref={ref} type="file" accept="image/*" multiple={max > 1} tabIndex={-1} className="sr-only" aria-label="Elegir fotos del equipo" onChange={add} />
         </>
       )}
-      {hint && <p className="mt-2 text-[0.9375rem] text-muted">{hint}</p>}
+      <p className="mt-2 text-[0.9375rem] text-muted">Subí solo fotos propias o con permiso de quien las sacó. La descripción ayuda a quienes no pueden ver la imagen y se muestra como epígrafe.</p>
+      {hint && <p className="mt-1 text-[0.9375rem] text-muted">{hint}</p>}
     </div>
   );
 }
@@ -1527,7 +1556,7 @@ function VenueForm({ item, onSave, onClose }) {
       </Field>
       <div>
         <p className="mb-2 font-semibold">Fotos del local</p>
-        <PhotoPicker photos={photos} setPhotos={setPhotos} hint="La primera foto es la portada. Con la estrella elegís otra." />
+        <PhotoPicker photos={photos} setPhotos={setPhotos} hint="La primera foto es la portada. Con “Usar de portada” elegís otra." />
       </div>
     </FormSheet>
   );
@@ -1643,16 +1672,16 @@ function DirectoryManager({ venues, setVenues, notify }) {
 
 function AdminGate({ onEnter, onExit }) {
   return (
-    <div className="grid min-h-screen place-items-center bg-deep px-4 py-16 text-sand">
+    <main id="contenido" className="grid min-h-screen place-items-center bg-deep px-4 py-16 text-sand">
       <motion.div className="w-full max-w-[28rem] rounded-[2rem] bg-bg p-8 text-ink sm:p-10" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: OUT }}>
         <span className="grid h-14 w-14 place-items-center rounded-full bg-surface text-sea"><I.Lock size={26} strokeWidth={1.6} aria-hidden="true" /></span>
-        <h1 className="mt-6 font-display text-[2.2rem] leading-[1.05]">Panel de la Junta Vecinal</h1>
+        <h1 ref={focusOnMount} tabIndex={-1} className="mt-6 font-display text-[2.2rem] leading-[1.05] focus:outline-none">Panel de la Junta Vecinal</h1>
         <p className="mt-4 text-muted">Desde acá publicás noticias y cargás los comercios del pueblo. Lo que guardes se ve en el sitio al instante.</p>
         <button type="button" onClick={onEnter} data-autofocus className={`${btnMain} mt-8 w-full`}>Entrar al panel</button>
         <button type="button" onClick={onExit} className={`${btnGhost} mt-3 w-full`}><I.ArrowLeft size={18} /> Volver al sitio</button>
         <p className="mt-6 text-[0.9375rem] text-muted">Demostración: en la versión final se pide usuario y contraseña.</p>
       </motion.div>
-    </div>
+    </main>
   );
 }
 
@@ -1669,9 +1698,9 @@ function Admin({ news, setNews, venues, setVenues, notify, onExit }) {
           </div>
         </div>
       </header>
-      <div className="gutter">
+      <main id="contenido" className="gutter">
         <div className="wrap py-12 md:py-16">
-          <h1 className="font-display text-[clamp(2rem,4.4vw,3.4rem)] leading-[1.05] tracking-[-0.015em]">Hola, Junta Vecinal</h1>
+          <h1 ref={focusOnMount} tabIndex={-1} className="focus:outline-none font-display text-[clamp(2rem,4.4vw,3.4rem)] leading-[1.05] tracking-[-0.015em]">Hola, Junta Vecinal</h1>
           <p className="mt-4 max-w-[56ch] text-[1.0625rem] text-muted">Elegí qué querés cambiar. Cada cambio se ve en el sitio público apenas lo guardás, y si borrás algo por error podés deshacerlo.</p>
           <div role="tablist" aria-label="Secciones del panel" className="mt-10 inline-flex max-w-full rounded-full bg-surface p-1">
             {tabs.map(([id, text, count, Icon]) => (
@@ -1688,7 +1717,7 @@ function Admin({ news, setNews, venues, setVenues, notify, onExit }) {
               : <DirectoryManager venues={venues} setVenues={setVenues} notify={notify} />}
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
@@ -1712,8 +1741,305 @@ function Toast({ t, onClose }) {
   );
 }
 
+/* ───────────────────────── Privacidad: consentimiento y textos legales ───────────────────────── */
+
+// Datos del titular. El CUIT y el domicilio legal se completan acá cuando la Junta los confirme; lo que esté vacío no se muestra.
+const ENTITY = { name: 'Junta Vecinal El Cóndor', place: 'Balneario El Cóndor, Río Negro, Argentina', email: 'contacto@elcondor.com.ar', phone: '+54 2920 12-3456', cuit: '' };
+const LEGAL_DATE = '31 de octubre de 2026';
+const LEGAL_IDS = ['privacidad', 'cookies', 'terminos'];
+const NEWTAB = <span className="sr-only"> (se abre en una pestaña nueva)</span>;
+const focusOnMount = (el) => el?.focus({ preventScroll: true });   // al cambiar de vista, el lector de pantalla arranca en el título
+
+const CONSENT_KEY = 'condor-consent';
+const YEAR = 365 * 864e5;
+const readConsent = () => { try { const c = JSON.parse(localStorage.getItem(CONSENT_KEY)); return c && Date.now() - c.at < YEAR ? c : null; } catch (_) { return null; } };
+
+function useConsent() {
+  const [choice, setChoice] = useState(readConsent);   // null: todavía no eligió
+  const [prefs, setPrefs] = useState(false);
+  const save = (weather) => {
+    const next = { weather, at: Date.now() };
+    try { localStorage.setItem(CONSENT_KEY, JSON.stringify(next)); } catch (_) { /* sin almacenamiento, la elección vale para esta visita */ }
+    setChoice(next); setPrefs(false);
+  };
+  return { weather: !!choice?.weather, undecided: choice === null, save, prefs, setPrefs };
+}
+
+function Switch({ checked, onChange, disabled, labelledBy, describedBy }) {
+  return (
+    <button type="button" role="switch" aria-checked={checked} aria-labelledby={labelledBy} aria-describedby={describedBy} disabled={disabled}
+      onClick={() => onChange(!checked)}
+      className={`press relative h-8 w-14 shrink-0 rounded-full transition-colors duration-200 disabled:opacity-60 ${checked ? 'bg-sea' : 'bg-muted'}`}>
+      <motion.span className="absolute left-1 top-1 h-6 w-6 rounded-full bg-bg" initial={false} animate={{ x: checked ? 24 : 0 }} transition={SPRING} />
+    </button>
+  );
+}
+
+function ConsentBanner({ consent, onMore }) {
+  const desktop = useMedia('(min-width: 768px)');
+  return (
+    <AnimatePresence>
+      {consent.undecided && (
+        <motion.section key="consent" aria-label="Privacidad y cookies"
+          initial={{ opacity: 0, y: desktop ? -16 : 28 }} animate={{ opacity: 1, y: 0, transition: { ...SPRING, delay: 0.9 } }}
+          exit={{ opacity: 0, y: desktop ? -10 : 16, transition: { duration: 0.18 } }}
+          className="fixed inset-x-0 bottom-0 z-[45] md:inset-x-auto md:bottom-auto md:right-0 md:top-[4.75rem] md:w-[29rem]"
+          style={{ padding: '0.75rem', paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))', paddingLeft: 'max(0.75rem, env(safe-area-inset-left, 0px))', paddingRight: 'max(0.75rem, env(safe-area-inset-right, 0px))' }}>
+          <div className="rounded-[1.75rem] bg-bg p-5 text-ink shadow-[0_24px_60px_-20px_rgb(14_43_51/.55)] sm:p-6">
+            <h2 className="font-display text-[1.375rem] leading-tight">Tu privacidad en El Cóndor</h2>
+            <p className="mt-2 text-[0.9375rem] leading-snug text-muted">
+              No usamos cookies de publicidad ni de seguimiento. Para mostrar el clima y las mareas en vivo, el sitio consulta a Open-Meteo, que recibe tu dirección IP. Vos elegís.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2.5">
+              <button type="button" onClick={() => consent.save(true)} className={btnMain}>Permitir clima en vivo</button>
+              <button type="button" onClick={() => consent.save(false)} className={`${btnGhost} !min-h-[48px] !px-5 !bg-surface`}>Solo lo esencial</button>
+            </div>
+            <button type="button" onClick={onMore} className="press mt-2 inline-flex min-h-[44px] items-center font-semibold text-sea underline decoration-2 underline-offset-4 hover:decoration-coral">Más información</button>
+          </div>
+        </motion.section>
+      )}
+    </AnimatePresence>
+  );
+}
+
+function PrefRow({ id, title, text, children }) {
+  return (
+    <li className="flex items-start gap-4 rounded-2xl bg-surface p-4">
+      <div className="min-w-0 flex-1">
+        <p id={`${id}-t`} className="font-semibold">{title}</p>
+        <p id={`${id}-d`} className="mt-1 text-[0.9375rem] leading-snug text-muted">{text}</p>
+      </div>
+      {children}
+    </li>
+  );
+}
+
+function PrefsModal({ consent, onClose, onMore }) {
+  const [weather, setWeather] = useState(consent.weather);
+  return (
+    <Modal label="Preferencias de privacidad" size="max-w-[34rem]" onClose={onClose}>
+      <div className="rounded-[2rem] bg-bg p-6 text-ink sm:p-8">
+        <h2 className="pr-12 font-display text-[1.75rem] leading-tight">Preferencias de privacidad</h2>
+        <p className="mt-2 text-muted">Elegí qué puede usar el sitio en este navegador. Podés cambiarlo cuando quieras.</p>
+        <ul className="m-0 mt-6 flex list-none flex-col gap-3 p-0">
+          <PrefRow id="pref-ess" title="Esenciales" text="Guardan tu elección de privacidad en este navegador. Sin ellas el sitio no puede recordarla.">
+            <div className="flex flex-col items-end gap-1">
+              <Switch checked disabled onChange={() => {}} labelledBy="pref-ess-t" describedBy="pref-ess-d" />
+              <span className="text-[0.8125rem] text-muted">Siempre activas</span>
+            </div>
+          </PrefRow>
+          <PrefRow id="pref-wx" title="Clima y mareas en vivo" text="Consulta a Open-Meteo los datos actuales. Open-Meteo recibe tu dirección IP.">
+            <div className="flex flex-col items-end gap-1">
+              <Switch checked={weather} onChange={setWeather} labelledBy="pref-wx-t" describedBy="pref-wx-d" />
+              <span className="text-[0.8125rem] text-muted">{weather ? 'Activado' : 'Desactivado'}</span>
+            </div>
+          </PrefRow>
+          <PrefRow id="pref-ads" title="Publicidad y analíticas" text="No usamos estas herramientas. Si las incorporamos, te pedimos permiso antes.">
+            <span className="shrink-0 rounded-full bg-bg px-3 py-1 text-[0.8125rem] font-semibold text-muted">No se usan</span>
+          </PrefRow>
+        </ul>
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          <button type="button" data-autofocus onClick={() => consent.save(weather)} className={btnMain}>Guardar preferencias</button>
+          <button type="button" onClick={onClose} className={btnGhost}>Cancelar</button>
+        </div>
+        <p className="mt-5 text-[0.9375rem] text-muted">Más detalles en la <LinkBtn onClick={onMore}>Política de cookies</LinkBtn>.</p>
+      </div>
+    </Modal>
+  );
+}
+
+/* ───────────────────────── Textos legales ───────────────────────── */
+
+const LinkBtn = ({ onClick, children }) => (
+  <button type="button" onClick={onClick} className="font-semibold text-sea underline decoration-2 underline-offset-4 hover:decoration-coral">{children}</button>
+);
+const Ext = ({ href, children }) => (
+  <a href={href} target="_blank" rel="noreferrer" className="font-semibold text-sea underline decoration-2 underline-offset-4 hover:decoration-coral">{children}{NEWTAB}</a>
+);
+
+const THIRD_PARTIES = [
+  ['Google Fonts (Google)', 'Tipografías del sitio', 'Dirección IP y datos del navegador', 'Al abrir el sitio'],
+  ['jsDelivr, cdnjs y Tailwind CDN', 'Entregan los componentes y estilos del sitio', 'Dirección IP y datos del navegador', 'Al abrir el sitio'],
+  ['Open-Meteo', 'Clima y mareas en vivo', 'Dirección IP y las coordenadas de El Cóndor (no tu ubicación)', 'Solo si lo permitís'],
+  ['WhatsApp (Meta)', 'Conversación con la Junta', 'Tu número, el nombre de tu perfil y tu mensaje', 'Cuando abrís WhatsApp y enviás un mensaje'],
+  ['Instagram y Google Maps', 'Enlaces al perfil de la Junta y al mapa', 'Lo que cada servicio recibe al abrir su página', 'Solo si abrís el enlace'],
+];
+
+function legalDocs({ open, prefs }) {
+  const contact = <>{ENTITY.email} o por WhatsApp al <span className="whitespace-nowrap">{ENTITY.phone}</span></>;
+  const cuit = ENTITY.cuit ? ` CUIT: ${ENTITY.cuit}.` : '';
+  const toPriv = <LinkBtn onClick={() => open('privacidad')}>Política de privacidad</LinkBtn>;
+  const toCook = <LinkBtn onClick={() => open('cookies')}>Política de cookies</LinkBtn>;
+  const toPrefs = <LinkBtn onClick={prefs}>Preferencias de cookies</LinkBtn>;
+  const changes = (what, it) => ({ h: `Cambios en ${what}`, p: [`Si ${it} modificamos, publicamos la nueva versión en esta página con su fecha de actualización.`] });
+  return {
+    privacidad: {
+      title: 'Política de privacidad',
+      short: [
+        'No hace falta crear una cuenta ni darnos tus datos para usar el sitio.',
+        'No usamos publicidad ni herramientas de seguimiento o analíticas.',
+        'Si nos escribís por WhatsApp, usamos tu nombre y tu mensaje solo para responderte.',
+        'El clima y las mareas en vivo se consultan a Open-Meteo únicamente si lo permitís.',
+        'Podés pedir acceso, corrección o borrado de tus datos cuando quieras.',
+      ],
+      sections: [
+        { h: 'Quién es responsable', p: [`${ENTITY.name} es responsable de los datos personales que se traten a través de este sitio. Domicilio: ${ENTITY.place}.${cuit}`, <>Podés escribirnos a {contact}.</>] },
+        { h: 'Qué datos tratamos y para qué', p: ['Estos son los datos que pueden tratarse cuando usás el sitio:'], ul: [
+          <><strong>Datos de navegación.</strong> Al abrir el sitio, tu navegador envía automáticamente tu dirección IP y datos técnicos (navegador, idioma, tipo de dispositivo) a los servidores que lo entregan. Los usamos para que el sitio cargue y se mantenga seguro, no para identificarte.</>,
+          <><strong>Mensajes por WhatsApp.</strong> Si tocás un botón de WhatsApp, se abre una conversación con la Junta. Tratamos tu número, el nombre de tu perfil y tu mensaje para responder tu consulta.</>,
+          <><strong>Tu elección de privacidad.</strong> Se guarda en tu navegador para no volver a preguntarte (ver la {toCook}).</>,
+        ] },
+        { h: 'Solo pedimos lo necesario', p: ['El sitio no tiene cuentas de usuario, ni pagos, ni formularios de registro. No pedimos datos sensibles ni armamos perfiles de visitantes. Cada dato tiene una finalidad concreta y no se pide más de lo indispensable. No vendemos ni cedemos tus datos a terceros con fines comerciales.'] },
+        { h: 'Tu consentimiento', p: [<>Tratamos tus datos con tu consentimiento libre e informado (art. 5 de la Ley 25.326), que das al escribirnos por WhatsApp o al permitir el clima en vivo. Podés retirarlo cuando quieras desde {toPrefs} o escribiéndonos.</>] },
+        { h: 'Servicios de terceros', p: ['Para funcionar, el sitio usa los servicios de la tabla. Cada uno recibe, como mínimo, tu dirección IP y tiene su propia política de privacidad. No incrustamos redes sociales ni mapas: solo enlazamos a ellos, y no reciben nada tuyo hasta que abrís el enlace.'],
+          table: { caption: 'Servicios de terceros que intervienen en el sitio', head: ['Servicio', 'Para qué', 'Qué recibe', 'Cuándo'], rows: THIRD_PARTIES } },
+        { h: 'Cuánto tiempo guardamos los datos', p: ['Los mensajes de WhatsApp se conservan mientras sean necesarios para atender tu consulta y luego se eliminan. Tu elección de privacidad se guarda hasta 12 meses. Los datos de navegación los conservan los proveedores de alojamiento y de contenido según sus propias políticas.'] },
+        { h: 'Tus derechos', p: [<>Tenés derecho a acceder a tus datos, rectificarlos, actualizarlos y pedir su supresión (arts. 14 a 16 de la Ley 25.326). Escribinos a {contact}: respondemos los pedidos de acceso en 10 días corridos y los de rectificación o supresión en 5 días hábiles.</>],
+          note: 'El titular de los datos personales tiene la facultad de ejercer el derecho de acceso a los mismos en forma gratuita a intervalos no inferiores a seis meses, salvo que se acredite un interés legítimo al efecto conforme lo establecido en el artículo 14, inciso 3 de la Ley Nº 25.326. La AGENCIA DE ACCESO A LA INFORMACIÓN PÚBLICA, en su carácter de Órgano de Control de la Ley Nº 25.326, tiene la atribución de atender las denuncias y reclamos que se interpongan con relación al incumplimiento de las normas sobre protección de datos personales.' },
+        { h: 'Menores de edad', p: ['El sitio es informativo y no pide datos a menores. Si sos menor de edad, consultá con una persona adulta antes de escribirnos.'] },
+        { h: 'Seguridad', p: ['El sitio se entrega por una conexión cifrada (HTTPS). Ningún sistema es infalible, pero tomamos medidas razonables para proteger la información que recibimos.'] },
+        changes('esta política', 'la'),
+      ],
+    },
+    cookies: {
+      title: 'Política de cookies',
+      short: [
+        'No usamos cookies de publicidad, de seguimiento ni de analíticas.',
+        'Guardamos una sola cosa en tu navegador: tu elección sobre el clima en vivo.',
+        'Podés cambiarla cuando quieras desde “Preferencias de cookies”.',
+      ],
+      sections: [
+        { h: 'Qué son las cookies y el almacenamiento local', p: ['Son pequeños datos que un sitio guarda en tu navegador para recordar algo. Se usan para recordar preferencias, mantener sesiones o medir visitas.'] },
+        { h: 'Qué guardamos en tu navegador', p: ['Este sitio guarda un único dato propio, necesario para recordar tu elección de privacidad. Por ser esencial, no requiere tu consentimiento.'],
+          table: { caption: 'Datos que el sitio guarda en tu navegador', head: ['Nombre', 'Tipo', 'Para qué sirve', 'Cuánto dura'], rows: [['condor-consent', 'Almacenamiento local, propio', 'Recordar si permitiste el clima en vivo', 'Hasta 12 meses; después volvemos a preguntarte']] } },
+        { h: 'Lo que no usamos', p: ['Este sitio no usa:'], ul: ['Analíticas de visitas (como Google Analytics).', 'Publicidad ni píxeles de seguimiento.', 'Botones o videos incrustados de redes sociales.', 'Mapas incrustados.'] },
+        { h: 'Si cambia algo', p: ['Si en el futuro incorporamos alguna de esas herramientas, la activamos únicamente después de que la aceptes y actualizamos esta política.'] },
+        { h: 'Servicios de terceros', p: [<>Los servicios que cargamos no necesitan cookies para funcionar y no las usamos para seguirte. Sí reciben tu dirección IP al entregar tipografías, componentes del sitio y, si lo permitís, datos de clima y mareas. El detalle está en la {toPriv}.</>] },
+        { h: 'Cómo cambiar tu elección', p: ['Podés modificarla en cualquier momento. También podés borrar los datos del sitio desde la configuración de tu navegador: en ese caso, volvemos a preguntarte.'],
+          action: <button type="button" onClick={prefs} className={`${btnMain} mt-5`}>Abrir preferencias de cookies</button> },
+        changes('esta política', 'la'),
+      ],
+    },
+    terminos: {
+      title: 'Términos y condiciones',
+      short: [
+        'El portal es informativo: reúne la oferta turística de El Cóndor.',
+        'Cada comercio es responsable de sus precios, horarios y servicios.',
+        'El clima y las mareas son orientativos: no los uses para navegar ni para decidir tu seguridad.',
+        'En el portal no se paga ni se reserva nada.',
+        'Tus derechos como consumidor siguen intactos.',
+      ],
+      sections: [
+        { h: 'Quiénes somos', p: [<>Este sitio es publicado por {ENTITY.name}. Domicilio: {ENTITY.place}.{cuit} Contacto: {contact}.</>] },
+        { h: 'Qué es este portal', p: ['Es un sitio informativo para quienes visitan o viven en El Cóndor. Reúne las novedades de la Junta Vecinal, el directorio de comercios y servicios, una galería de imágenes y datos de clima y mareas. Al usarlo aceptás estos términos; si no estás de acuerdo, te pedimos que no lo uses.'] },
+        { h: 'Comercios y servicios del directorio', p: [<>Los comercios, alojamientos y excursiones son independientes de la Junta Vecinal. Cada uno es responsable de lo que ofrece: precios, horarios, disponibilidad y calidad. Revisamos la información con cuidado, pero puede cambiar sin aviso. Si encontrás un dato incorrecto, escribinos a {contact} y lo corregimos.</>] },
+        { h: 'Clima y mareas', p: ['Los datos de clima y mareas son orientativos. Provienen de Open-Meteo; si el servicio no está disponible, se muestran valores de ejemplo o estimados y el sitio lo aclara. No los uses para navegar, pescar ni para decidir tu seguridad: para eso consultá las fuentes oficiales, como el Servicio Meteorológico Nacional y el Servicio de Hidrografía Naval.'] },
+        { h: 'Pagos, reservas y reembolsos', p: ['El portal no procesa pagos ni reservas. Cualquier contratación se hace directamente con cada comercio, que define sus condiciones de pago, cancelación y reembolso. Consultalas antes de contratar.', 'Si en el futuro se habilitan reservas o pagos dentro del portal, vamos a publicar acá la política de reembolsos y el derecho de arrepentimiento que correspondan.'] },
+        { h: 'Opiniones y valoraciones', p: ['El portal no publica reseñas ni valoraciones de visitantes. Si se incorporan, serán de personas reales: no las vamos a escribir ni comprar, ni a ocultar las críticas.'] },
+        { h: 'Propiedad intelectual y créditos', p: ['Los textos, el diseño y las ilustraciones del portal pertenecen a la Junta Vecinal o a quienes los crearon, y están protegidos por la Ley 11.723. Podés compartir el sitio y sus enlaces, pero no copiar ni reutilizar su contenido sin permiso. Las fotos que cargue la Junta deben ser propias o contar con autorización de su autor.', 'Créditos:'],
+          ul: ['Tipografías Young Serif y Hanken Grotesk, con licencia SIL Open Font License.', 'Íconos Lucide, con licencia ISC.', <>Datos de clima y mareas: <Ext href="https://open-meteo.com/">Open-Meteo.com</Ext>, con licencia CC BY 4.0.</>] },
+        { h: 'Uso adecuado', p: ['No uses el sitio para actividades ilegales, para intentar acceder a sectores restringidos ni para sobrecargarlo con consultas automáticas.'] },
+        { h: 'Enlaces a otros sitios', p: ['El portal enlaza a sitios de terceros, como Instagram, WhatsApp y Google Maps. No controlamos su contenido ni sus políticas.'] },
+        { h: 'Responsabilidad', p: ['Hacemos lo posible para que la información sea correcta y el sitio esté disponible, pero no podemos garantizar que no haya errores ni interrupciones. Nada de lo que figura acá limita los derechos que la Ley 24.240 de Defensa del Consumidor te reconoce.'] },
+        changes('estos términos', 'los'),
+        { h: 'Ley aplicable y reclamos', p: [<>Estos términos se rigen por las leyes de la República Argentina. Para cualquier controversia son competentes los tribunales ordinarios de la Provincia de Río Negro, sin perjuicio de tu derecho, como consumidor, a recurrir al juez de tu domicilio. Si querés hacer un reclamo, escribinos primero a {contact}; también podés acudir a la Dirección de Defensa del Consumidor de tu jurisdicción.</>] },
+      ],
+    },
+  };
+}
+
+function LegalTable({ caption, head, rows }) {
+  return (
+    <div className="mt-5 overflow-x-auto rounded-2xl bg-surface" tabIndex={0} role="region" aria-label={caption}>
+      <table className="w-full min-w-[36rem] border-collapse text-left text-[0.9375rem]">
+        <caption className="sr-only">{caption}</caption>
+        <thead><tr>{head.map((h) => <th key={h} scope="col" className="px-4 py-3 font-semibold text-sea">{h}</th>)}</tr></thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={i} className={i % 2 ? '' : 'bg-bg/70'}>
+              {r.map((c, j) => <td key={j} className={`px-4 py-3 align-top leading-snug ${j === 0 ? 'font-semibold' : 'text-muted'}`}>{c}</td>)}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function LegalPage({ doc, onDoc, onExit, onPrefs }) {
+  const docs = legalDocs({ open: onDoc, prefs: onPrefs }), d = docs[doc];
+  const names = [['privacidad', 'Política de privacidad'], ['cookies', 'Política de cookies'], ['terminos', 'Términos y condiciones']];
+  const side = 'press flex min-h-[44px] w-full items-center rounded-full px-4 text-left font-semibold';
+  return (
+    <div className="min-h-screen bg-bg">
+      <header className="bg-deep text-sand" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+        <div className="gutter">
+          <div className="wrap flex h-[4.25rem] items-center justify-between gap-4">
+            <a href="#inicio" onClick={(e) => { e.preventDefault(); onExit(); }} aria-label="El Cóndor, volver al sitio"><Logo /></a>
+            <button type="button" onClick={onExit} className="press inline-flex min-h-[44px] items-center gap-2 rounded-full bg-sand/10 px-5 font-semibold hover:bg-sand/20"><I.ArrowLeft size={17} aria-hidden="true" /> Volver al sitio</button>
+          </div>
+        </div>
+      </header>
+      <main id="contenido" tabIndex={-1} className="gutter focus:outline-none">
+        <div className="wrap grid gap-10 py-12 md:grid-cols-12 md:gap-12 md:py-20">
+          <nav aria-label="Documentos legales" className="md:col-span-3">
+            <div className="flex flex-col gap-6 md:sticky md:top-8">
+              <ul className="m-0 flex list-none flex-wrap gap-2 p-0 md:flex-col md:gap-1">
+                {names.map(([id, t]) => (
+                  <li key={id} className="max-md:shrink-0">
+                    <button type="button" aria-current={id === doc ? 'page' : undefined} onClick={() => onDoc(id)}
+                      className={`${side} ${id === doc ? 'bg-deep text-sand' : 'bg-surface text-ink hover:bg-ink/10'}`}>{t}</button>
+                  </li>
+                ))}
+              </ul>
+              <div className="hidden md:block">
+                <p className="px-4 text-[0.9375rem] font-semibold text-sea">En esta página</p>
+                <ul className="m-0 mt-2 flex list-none flex-col p-0">
+                  {d.sections.map((s, i) => (
+                    <li key={s.h}><a href={`#${doc}-${i}`} onClick={(e) => go(e, `${doc}-${i}`)} className="block rounded-xl px-4 py-1.5 text-[0.9375rem] leading-snug text-muted hover:text-ink">{s.h}</a></li>
+                  ))}
+                </ul>
+              </div>
+              <button type="button" onClick={onPrefs} className="press inline-flex min-h-[44px] items-center gap-2 self-start rounded-full px-4 font-semibold text-sea underline decoration-2 underline-offset-4 hover:decoration-coral">Preferencias de cookies</button>
+            </div>
+          </nav>
+          <article key={doc} className="min-w-0 md:col-span-8 md:col-start-5">
+            <h1 ref={focusOnMount} tabIndex={-1} className="font-display text-[clamp(2.2rem,4.6vw,3.6rem)] leading-[1.05] tracking-[-0.015em] focus:outline-none">{d.title}</h1>
+            <p className="mt-3 text-muted">Última actualización: {LEGAL_DATE}</p>
+            <section aria-labelledby="resumen" className="mt-8 rounded-[1.75rem] bg-surface p-6 sm:p-7">
+              <h2 id="resumen" className="font-display text-[1.4rem] leading-tight">En pocas palabras</h2>
+              <ul className="m-0 mt-4 flex list-none flex-col gap-3 p-0">
+                {d.short.map((t) => <li key={t} className="flex items-start gap-3 leading-snug"><I.Check size={18} strokeWidth={2.4} className="mt-0.5 shrink-0 text-sea" aria-hidden="true" />{t}</li>)}
+              </ul>
+            </section>
+            {d.sections.map((s, i) => (
+              <section key={s.h} id={`${doc}-${i}`} aria-labelledby={`${doc}-${i}-h`} className="mt-12 scroll-mt-8">
+                <h2 id={`${doc}-${i}-h`} className="font-display text-[1.65rem] leading-tight">{s.h}</h2>
+                {s.p?.map((t, k) => <p key={k} className="mt-4 max-w-[65ch] text-[1.0625rem] leading-[1.7]">{t}</p>)}
+                {s.ul && (
+                  <ul className="m-0 mt-4 flex max-w-[65ch] list-none flex-col gap-3 p-0">
+                    {s.ul.map((t, k) => <li key={k} className="flex gap-3 text-[1.0625rem] leading-[1.7]"><span className="mt-[0.7rem] h-2 w-2 shrink-0 rounded-full bg-coral" aria-hidden="true" /><span>{t}</span></li>)}
+                  </ul>
+                )}
+                {s.table && <LegalTable {...s.table} />}
+                {s.note && <p className="mt-5 max-w-[65ch] rounded-2xl bg-tint2 p-5 text-[0.9375rem] leading-[1.65]">{s.note}</p>}
+                {s.action}
+              </section>
+            ))}
+          </article>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+const setHash = (h) => { try { history.replaceState(null, '', h ? `#${h}` : location.pathname + location.search); } catch (_) { /* sin historial: no pasa nada */ } };
+const hashDoc = () => { try { const h = location.hash.slice(1); return LEGAL_IDS.includes(h) ? h : null; } catch (_) { return null; } };
+
 function App() {
-  const [view, setView] = useState('sitio');          // 'sitio' | 'admin': enrutamiento simulado
+  const first = useRef(hashDoc()).current;                   // un enlace con #privacidad abre ese texto directamente
+  const [view, setView] = useState(first ? 'legal' : 'sitio');   // 'sitio' | 'legal' | 'admin': enrutamiento simulado
+  const [legalDoc, setLegalDoc] = useState(first || 'privacidad');
   const [adminIn, setAdminIn] = useState(false);
   const [moment, setMoment] = useState('atardecer');
   const [scrolled, setScrolled] = useState(false);
@@ -1721,36 +2047,48 @@ function App() {
   const [news, setNews] = useState(NEWS_SEED);
   const [venues, setVenues] = useState(VENUES_SEED);
   const [toast, setToast] = useState(null);
+  const consent = useConsent();
   const timer = useRef(0);
   const notify = (msg, undo) => {
     clearTimeout(timer.current);
     setToast({ id: Date.now(), msg, undo });
     timer.current = setTimeout(() => setToast(null), 6000);
   };
-  const show = (v) => { setCat(null); setToast(null); setView(v); window.scrollTo({ top: 0, behavior: 'instant' }); };
+  const show = (v, doc = '') => { setCat(null); setToast(null); setView(v); setHash(v === 'legal' ? doc : ''); window.scrollTo({ top: 0, behavior: 'instant' }); };
+  const openLegal = (d) => { setLegalDoc(d); show('legal', d); };
+  const skip = (e) => { e.preventDefault(); const m = document.getElementById('contenido'); m?.focus(); m?.scrollIntoView(); };
+  useEffect(() => { document.documentElement.lang = 'es'; }, []);
   useEffect(() => {
     const f = () => setScrolled(window.scrollY > 24);
     f(); window.addEventListener('scroll', f, { passive: true });
     return () => window.removeEventListener('scroll', f);
   }, []);
+  const fade = { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: { duration: 0.2 } };
   return (
     <>
+      <a href="#contenido" onClick={skip}
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[70] focus:rounded-full focus:bg-coral focus:px-5 focus:py-3 focus:font-semibold focus:text-[#0E2B33]">Saltar al contenido</a>
+      {view !== 'admin' && <ConsentBanner consent={consent} onMore={() => openLegal('cookies')} />}
       <AnimatePresence mode="wait" initial={false}>
         {view === 'sitio' ? (
-          <motion.div key="sitio" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+          <motion.div key="sitio" {...fade}>
             <Header scrolled={scrolled} />
-            <main>
-              <Hero momentId={moment} setMoment={setMoment} />
+            <main id="contenido" tabIndex={-1} className="focus:outline-none">
+              <Hero momentId={moment} setMoment={setMoment} consent={consent} />
               <Intro />
               <Directory onOpen={setCat} />
               <Gallery />
               <NewsGrid news={news} onAdmin={() => show('admin')} />
               <InstagramFeed />
             </main>
-            <Footer onAdmin={() => show('admin')} />
+            <Footer onAdmin={() => show('admin')} onLegal={openLegal} onPrefs={() => consent.setPrefs(true)} />
+          </motion.div>
+        ) : view === 'legal' ? (
+          <motion.div key="legal" {...fade}>
+            <LegalPage doc={legalDoc} onDoc={openLegal} onExit={() => show('sitio')} onPrefs={() => consent.setPrefs(true)} />
           </motion.div>
         ) : (
-          <motion.div key="admin" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+          <motion.div key="admin" {...fade}>
             {adminIn
               ? <Admin news={news} setNews={setNews} venues={venues} setVenues={setVenues} notify={notify} onExit={() => show('sitio')} />
               : <AdminGate onEnter={() => setAdminIn(true)} onExit={() => show('sitio')} />}
@@ -1758,6 +2096,9 @@ function App() {
         )}
       </AnimatePresence>
       <AnimatePresence>{cat && <Drawer key={cat.id} cat={cat} venues={venues} onClose={() => setCat(null)} />}</AnimatePresence>
+      <AnimatePresence>
+        {consent.prefs && <PrefsModal key="prefs" consent={consent} onClose={() => consent.setPrefs(false)} onMore={() => { consent.setPrefs(false); openLegal('cookies'); }} />}
+      </AnimatePresence>
       <Toast t={toast} onClose={() => setToast(null)} />
     </>
   );
