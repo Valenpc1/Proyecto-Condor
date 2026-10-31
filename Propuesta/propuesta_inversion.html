@@ -1,0 +1,389 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Propuesta Portal El Cóndor</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Young+Serif&display=swap">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>
+  tailwind.config = {
+    future: { hoverOnlyWhenSupported: true },
+    theme: { extend: {
+      colors: {
+        desk: '#E6DFD2', paper: '#FCFAF6', sand: '#F4EEE4', dune: '#E9E0D1',
+        ink: '#0E2B33', muted: '#4E6368', sea: '#2E6A75', mist: '#DDE8E8', coral: '#E4684C', deep: '#0D2A33',
+      },
+      fontFamily: {
+        display: ['"Young Serif"', 'Georgia', 'serif'],
+        sans: ['"Hanken Grotesk"', 'system-ui', 'sans-serif'],
+      },
+    } },
+  };
+</script>
+<style>
+  /* Documento A4 de cuatro hojas: papel claro sobre una mesa color arena, pensado para imprimirse a PDF sin márgenes.
+     Una sola apariencia, clara, porque es un documento de papel. */
+  :root {
+    --desk: #E6DFD2;      /* mesa */
+    --paper: #FCFAF6;     /* hoja */
+    --ink: #0E2B33;       /* océano profundo: texto */
+    --sea: #2E6A75;       /* azul grisáceo del mar */
+    --coral: #E4684C;     /* atardecer: acento */
+    --display: "Young Serif", Georgia, serif;
+    --body: "Hanken Grotesk", system-ui, sans-serif;
+    color-scheme: light;
+  }
+  html { background: var(--desk); }
+  body {
+    margin: 0; background: var(--desk); color: var(--ink);
+    font: 400 15px/1.6 var(--body); -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 { margin: 0; font-weight: 400; text-wrap: balance; }
+  p { margin: 0; }
+  :focus-visible { outline: 2px solid var(--coral); outline-offset: 3px; border-radius: 8px; }
+
+  .desk {
+    display: flex; flex-direction: column; align-items: center; gap: 36px;
+    padding-block: 48px 64px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .sheet {
+    position: relative; width: 210mm; height: 297mm; overflow: hidden;
+    background: var(--paper); border-radius: 14px;
+    box-shadow: 0 1px 2px rgb(14 43 51 / .06), 0 30px 70px -34px rgb(14 43 51 / .32);
+  }
+  .sheet-in { height: 100%; display: flex; flex-direction: column; padding: 52px 56px 40px; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  .plan { transition: transform 220ms cubic-bezier(.23, 1, .32, 1), box-shadow 220ms ease; }
+  @media (hover: hover) and (pointer: fine) {
+    .plan:hover { transform: translateY(-3px); box-shadow: 0 22px 40px -26px rgb(14 43 51 / .45); }
+  }
+  .plan:active { transform: scale(.99); }
+  @media (prefers-reduced-motion: reduce) { .plan, .plan:hover { transition: none; transform: none; } }
+
+  /* En pantallas angostas la hoja deja de ser A4 y el contenido se reacomoda. */
+  @media screen and (max-width: 860px) {
+    .desk { gap: 20px; padding-block: 20px 32px; }
+    .sheet { width: 100%; height: auto; }
+    .sheet-in { padding: 32px 22px 26px; }
+  }
+  @media print {
+    @page { size: A4; margin: 0; }
+    html, body { background: #fff; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .desk { padding: 0; gap: 0; }
+    .sheet { width: 210mm !important; height: 297mm !important; border-radius: 0; box-shadow: none; break-after: page; }
+    .screen-only { display: none !important; }
+  }
+</style>
+
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script>window.react = window.React; // el UMD de lucide-react busca el global en minúscula</script>
+<script src="https://cdn.jsdelivr.net/npm/lucide-react@0.263.1/dist/umd/lucide-react.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
+
+<script type="text/babel" data-presets="react">
+const { useState, useMemo } = React;
+const I = LucideReact;
+const PAGES = 4;
+
+const fmt = (n) => `$ ${n.toLocaleString('es-AR')}`;
+const range = (min, max) => (max ? `${fmt(min)} – ${fmt(max)}` : `Desde ${fmt(min)}`);
+
+const BENEFITS = [
+  { Icon: I.Clock, title: 'Visibilidad y captación 24/7', key: 'Atiende al turista las 24 horas, todos los días.',
+    text: 'La plataforma actúa como un centro de atención al turista que nunca cierra. Resuelve dudas frecuentes, muestra atractivos y capta visitantes incluso fuera del horario comercial.' },
+  { Icon: I.ShieldCheck, title: 'Autoridad y confianza institucional', key: 'Una presencia profesional, a la altura del lugar.',
+    text: 'Un diseño pulido, sin plantillas genéricas, eleva instantáneamente la percepción del lugar. Los turistas confían y gastan más en destinos que presentan su oferta de manera profesional y estructurada.' },
+  { Icon: I.LayoutGrid, title: 'Centralización del ecosistema local', key: 'Toda la oferta de la villa en un solo lugar.',
+    text: 'Permite unificar toda la oferta (gastronomía, hospedaje, excursiones, clima en tiempo real) en un solo ecosistema, evitando que el usuario dependa de algoritmos de redes sociales o información fragmentada y desactualizada en Google.' },
+  { Icon: I.SlidersHorizontal, title: 'Autonomía y escalabilidad', key: 'La Junta conserva el control total.',
+    text: 'Al contar con un sistema autogestionable, la organización retiene el control total sobre la información, pudiendo actualizar novedades, sumar nuevos comercios y escalar las funcionalidades según crezca la demanda.' },
+];
+
+const PLANS = [
+  { id: 'basico', name: 'Sitio Institucional Básico', tag: 'Presencia clara y directa', min: 450000, max: 600000,
+    items: ['Landing page informativa', 'Diseño adaptable a celulares (responsive)', 'Formulario de contacto directo a WhatsApp', 'Enlace a redes sociales'] },
+  { id: 'avanzado', name: 'Portal Interactivo Avanzado', tag: 'El portal completo, como el prototipo', min: 900000, max: 1200000, recommended: true,
+    items: ['Sistema autogestionable (CMS)', 'Animaciones UI/UX fluidas, con físicas de resortes', 'Directorio categorizado con galerías de imágenes', 'Widgets dinámicos de clima y mareas', 'Integración de feeds'] },
+  { id: 'premium', name: 'Plataforma Integral Premium', tag: 'Reservas, idiomas y alcance', min: 1800000, max: null,
+    items: ['Todo el Portal Interactivo Avanzado', 'Sistema de reservas integrado', 'Múltiples idiomas', 'Bases de datos complejas', 'Optimización SEO técnica de alto rendimiento'] },
+];
+const MAINT = { min: 45000, max: 65000 };
+const COVERAGE = [
+  { Icon: I.Server, title: 'Servidores', text: 'Pago del hosting donde vive el sitio.' },
+  { Icon: I.Globe, title: 'Dominio', text: 'Renovación anual de la dirección web.' },
+  { Icon: I.Lock, title: 'Certificado de seguridad', text: 'SSL vigente: conexión cifrada y candado en el navegador.' },
+  { Icon: I.DatabaseBackup, title: 'Copias de respaldo', text: 'Backups periódicos de todo el contenido.' },
+  { Icon: I.LifeBuoy, title: 'Soporte técnico', text: 'Respuesta ante caídas y actualizaciones del sistema.' },
+];
+
+/* ───────────── piezas ───────────── */
+
+function Mark({ size = 34 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 34 34" aria-hidden="true">
+      <rect width="34" height="34" rx="9" fill="#E4684C" />
+      <g transform="translate(5 5) scale(0.92)">
+        <path d="M9 24 L11 8 H15 L17 24Z" fill="#FCFAF6" />
+        <rect x="10" y="3" width="6" height="5" rx="1" fill="#0E2B33" />
+        <path d="M2 11 L9 9 V6Z M24 11 L17 9 V6Z" fill="#FCFAF6" opacity=".5" />
+      </g>
+    </svg>
+  );
+}
+
+function Label({ children, tone = 'text-sea' }) {
+  return <p className={`text-[13.5px] font-semibold tracking-[0.01em] ${tone}`}>{children}</p>;
+}
+
+function PageFoot({ n }) {
+  return (
+    <div className="mt-auto flex items-center justify-between gap-4 pt-8 text-[12px] text-muted">
+      <span className="flex items-center gap-2"><Mark size={16} />Propuesta de inversión · Portal Turístico El Cóndor</span>
+      <span className="num whitespace-nowrap">{n} / {PAGES}</span>
+    </div>
+  );
+}
+
+function Sheet({ n, children }) {
+  return (
+    <section id={`pagina-${n}`} className="sheet" aria-label={`Página ${n} de ${PAGES}`}>
+      <div className="sheet-in">{children}<PageFoot n={n} /></div>
+    </section>
+  );
+}
+
+const prng = (seed) => () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+// La misma escena del hero del portal: atardecer, acantilado con la colonia de loros y el faro.
+function CoverArt() {
+  const crest = [[470, 380], [520, 322], [566, 262], [616, 228], [680, 212], [760, 205], [800, 203]];
+  const topAt = (x) => { for (let i = 1; i < crest.length; i++) if (x <= crest[i][0]) { const [a, b] = crest[i - 1], [c, d] = crest[i]; return b + ((d - b) * (x - a)) / (c - a); } return 203; };
+  const holes = useMemo(() => {
+    const r = prng(7), out = [];
+    for (let i = 0; i < 70; i++) { const x = 560 + r() * 240, y = topAt(x) + 26 + r() * 150; if (y < 368) out.push([x, y, 2.4 + r() * 3, 1.8 + r() * 2]); }
+    return out;
+  }, []);
+  const path = 'M' + crest.map((p) => p.join(' ')).join(' L');
+  return (
+    <svg viewBox="0 0 800 380" preserveAspectRatio="xMidYMid slice" className="block h-full w-full" role="img" aria-label="Ilustración del portal: atardecer sobre el acantilado de los loros y el faro">
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#3A3E72" /><stop offset=".62" stopColor="#D5587B" /><stop offset="1" stopColor="#F7A458" /></linearGradient>
+        <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#E08A5E" /><stop offset=".55" stopColor="#233F5B" /></linearGradient>
+        <radialGradient id="glow"><stop offset="0" stopColor="#FFB06A" stopOpacity=".95" /><stop offset="1" stopColor="#FFB06A" stopOpacity="0" /></radialGradient>
+        <clipPath id="cliff"><path d={`${path} L800 380 L470 380Z`} /></clipPath>
+      </defs>
+      <rect width="800" height="380" fill="url(#sky)" />
+      <circle cx="300" cy="300" r="300" fill="url(#glow)" />
+      <g fill="#F58D88" opacity=".75"><ellipse cx="170" cy="78" rx="120" ry="12" /><ellipse cx="230" cy="68" rx="70" ry="11" /><ellipse cx="520" cy="54" rx="130" ry="10" /><ellipse cx="610" cy="118" rx="95" ry="8" /></g>
+      <rect y="292" width="800" height="88" fill="url(#sea)" />
+      <g fill="#FFC07A" opacity=".7">{[[150, 300], [118, 312], [90, 326], [66, 342], [46, 360]].map(([w, y]) => <rect key={y} x={300 - w / 2} y={y} width={w} height="3.5" rx="1.75" />)}</g>
+      <path d={`${path} L800 380 L470 380Z`} fill="#E5814F" />
+      <g clipPath="url(#cliff)">
+        {[250, 290, 330].map((y, i) => <path key={y} d={`M460 ${y} q85 ${i % 2 ? 6 : -6} 170 0 t170 0 t170 0 V${y + 18} H460Z`} fill="#8A3E2B" opacity={0.16 + i * 0.04} />)}
+        <g fill="#24140D" opacity=".7">{holes.map(([x, y, rx, ry], i) => <ellipse key={i} cx={x} cy={y} rx={rx} ry={ry} />)}</g>
+      </g>
+      <path d={path} fill="none" stroke="#7A6A38" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
+      <g transform="translate(690 213) scale(0.62)">
+        <path d="M-15 0 L-9 -150 L9 -150 L15 0Z" fill="#FFE7D2" />
+        <path d="M-12.04 -74 L-11.32 -92 L11.32 -92 L12.04 -74Z" fill="#E4684C" />
+        <rect x="-14" y="-158" width="28" height="6" rx="1.5" fill="#1B2A30" />
+        <rect x="-8" y="-176" width="16" height="18" fill="#2C3E45" />
+        <path d="M-11 -176 L0 -192 L11 -176Z" fill="#1B2A30" />
+      </g>
+      <g fill="#68792D">{[[420, 150, 1.2], [470, 120, 1], [540, 168, 1.3], [380, 196, 0.9]].map(([x, y, s]) => (
+        <g key={x} transform={`translate(${x} ${y}) scale(${s})`}><ellipse rx="7" ry="2.6" /><circle cx="-7.5" cy="-.5" r="2.2" /><path d="M-1 0 Q3 -13 14 -17 Q8 -7 5 0Z" /></g>))}</g>
+    </svg>
+  );
+}
+
+/* ───────────── hojas ───────────── */
+
+function Cover() {
+  return (
+    <Sheet n={1}>
+      <header className="flex items-center justify-between gap-6">
+        <span className="flex items-center gap-3"><Mark /><span className="font-display text-[22px] leading-none">El Cóndor</span></span>
+        <span className="text-right text-[13px] leading-snug text-muted">Propuesta de inversión<br />Octubre de 2026</span>
+      </header>
+
+      <figure className="relative mt-8 h-[300px] overflow-hidden rounded-[22px] sm:h-[360px]">
+        <CoverArt />
+        <figcaption className="absolute bottom-4 left-4 right-4 w-fit rounded-full bg-deep/70 px-4 py-2 text-[12.5px] font-medium text-paper">
+          El faro de 1887 y la colonia de loros, tal como aparecen en el prototipo del portal
+        </figcaption>
+      </figure>
+
+      <div className="mt-10 max-w-[600px]">
+        <Label>Propuesta de desarrollo digital</Label>
+        <h1 className="mt-3 font-display text-[clamp(38px,7vw,54px)] leading-[1.02] tracking-[-0.015em]">Portal Turístico El Cóndor</h1>
+        <p className="mt-6 text-[18px] leading-[1.6] text-ink">
+          Tener una plataforma digital propia transforma por completo la forma en que un destino o negocio se posiciona en el mercado, dejando de ser un punto en el mapa para convertirse en una experiencia accesible desde cualquier dispositivo.
+        </p>
+      </div>
+
+      <dl className="mt-10 grid gap-x-8 gap-y-5 rounded-[20px] bg-sand p-6 sm:grid-cols-3">
+        {[['Preparada para', 'Junta Vecinal de El Cóndor, Río Negro'], ['Incluye', 'Diseño, desarrollo y mantenimiento del portal'], ['Contenido', 'Beneficios, inversión por nivel y soporte mensual']].map(([k, v]) => (
+          <div key={k} className="min-w-0">
+            <dt className="text-[12.5px] font-semibold text-sea">{k}</dt>
+            <dd className="mt-1 text-[14.5px] leading-snug">{v}</dd>
+          </div>
+        ))}
+      </dl>
+    </Sheet>
+  );
+}
+
+function Benefits() {
+  return (
+    <Sheet n={2}>
+      <Label>Por qué un portal propio</Label>
+      <h2 className="mt-3 font-display text-[clamp(32px,5.4vw,42px)] leading-[1.05]">Beneficios estratégicos</h2>
+      <p className="mt-4 max-w-[560px] text-[16px] text-muted">Una página web propia trabaja para la villa todos los días del año. Estos son los cuatro cambios que produce.</p>
+
+      <div className="mt-9 grid gap-4 sm:grid-cols-2">
+        {BENEFITS.map(({ Icon, title, key, text }) => (
+          <article key={title} className="flex min-w-0 flex-col rounded-[22px] bg-sand p-6">
+            <span className="grid h-12 w-12 place-items-center rounded-full bg-paper text-sea" aria-hidden="true"><Icon size={22} strokeWidth={1.7} /></span>
+            <h3 className="mt-5 font-display text-[21px] leading-[1.15]">{title}</h3>
+            <p className="mt-3 flex items-start gap-2 text-[14.5px] font-semibold leading-snug text-ink">
+              <span className="mt-[7px] h-2 w-2 shrink-0 rounded-full bg-coral" aria-hidden="true" />{key}
+            </p>
+            <p className="mt-2 text-[14px] leading-[1.6] text-muted">{text}</p>
+          </article>
+        ))}
+      </div>
+    </Sheet>
+  );
+}
+
+function Investment() {
+  const [chosen, setChosen] = useState('avanzado');
+  const plan = PLANS.find((p) => p.id === chosen);
+  const first = { min: plan.min + 12 * MAINT.min, max: plan.max ? plan.max + 12 * MAINT.max : null };
+  return (
+    <Sheet n={3}>
+      <Label>Inversión</Label>
+      <h2 className="mt-3 font-display text-[clamp(32px,5.4vw,42px)] leading-[1.05]">Propuesta de inversión y desarrollo</h2>
+      <p className="mt-3 max-w-[600px] text-[15.5px] text-muted">
+        El siguiente presupuesto está estructurado en niveles de complejidad, permitiendo elegir la solución que mejor se adapte a los objetivos de posicionamiento y funcionalidad requeridos. Valores en pesos argentinos (ARS).
+      </p>
+
+      <div className="mt-7 grid items-stretch gap-3 sm:grid-cols-3">
+        {PLANS.map((p) => {
+          const dark = p.recommended, on = p.id === chosen;
+          return (
+            <article key={p.id}
+              className={`plan relative flex min-w-0 flex-col rounded-[20px] p-5 ${dark ? 'bg-deep text-paper' : 'bg-sand'} ${on && !dark ? 'ring-2 ring-coral ring-offset-2 ring-offset-paper' : ''}`}>
+              {dark && <span className="absolute -top-3 left-5 rounded-full bg-coral px-3 py-1 text-[11.5px] font-semibold text-[#0E2B33]">Opción recomendada</span>}
+              <h3 className="font-display text-[19px] leading-[1.15]">{p.name}</h3>
+              <p className={`mt-1.5 text-[12.5px] ${dark ? 'text-paper/70' : 'text-muted'}`}>{p.tag}</p>
+              <div className={`mt-4 rounded-[14px] p-3.5 ${dark ? 'bg-paper/10' : 'bg-paper'}`}>
+                <p className={`text-[11.5px] font-semibold ${dark ? 'text-paper/70' : 'text-sea'}`}>Inversión estimada</p>
+                <p className="num mt-1 font-display text-[21px] leading-[1.15]">
+                  {p.max ? <>{fmt(p.min)}<span className="opacity-60"> –</span><br />{fmt(p.max)}</> : <>Desde<br />{fmt(p.min)}</>}
+                </p>
+              </div>
+              <ul className="m-0 mt-4 flex list-none flex-col gap-2 p-0">
+                {p.items.map((it) => (
+                  <li key={it} className="flex items-start gap-2 text-[13px] leading-snug">
+                    <I.Check size={15} strokeWidth={2.4} className={`mt-[2px] shrink-0 ${dark ? 'text-coral' : 'text-sea'}`} aria-hidden="true" />{it}
+                  </li>
+                ))}
+              </ul>
+              {dark && <p className="mt-4 text-[12.5px] leading-snug text-paper/75">Es el nivel del prototipo que la Junta ya recorrió: panel propio, directorio con fotos, clima y mareas.</p>}
+              <button type="button" onClick={() => setChosen(p.id)} aria-pressed={on}
+                className={`screen-only mt-auto pt-4 text-left text-[12.5px] font-semibold underline decoration-2 underline-offset-4 after:absolute after:inset-0 after:content-[''] ${dark ? 'text-paper decoration-paper/40' : 'text-ink decoration-ink/30'}`}>
+                {on ? 'En el resumen' : 'Ver en el resumen'}
+              </button>
+            </article>
+          );
+        })}
+      </div>
+
+      <div className="mt-4 rounded-[20px] bg-mist p-5" aria-live="polite">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <p className="font-display text-[18px]">Resumen: {plan.name}</p>
+          <p className="screen-only text-[12.5px] text-muted">Elegí otra tarjeta para comparar</p>
+        </div>
+        <dl className="mt-4 grid gap-4 sm:grid-cols-3">
+          {[['Desarrollo, pago único', range(plan.min, plan.max)], ['Mantenimiento mensual', range(MAINT.min, MAINT.max)], ['Primer año, con 12 meses de mantenimiento', range(first.min, first.max)]].map(([k, v]) => (
+            <div key={k} className="min-w-0">
+              <dt className="text-[12px] font-semibold leading-snug text-sea">{k}</dt>
+              <dd className="num mt-1 text-[15.5px] font-semibold">{v}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </Sheet>
+  );
+}
+
+function Support() {
+  return (
+    <Sheet n={4}>
+      <Label>Respaldo continuo</Label>
+      <h2 className="mt-3 font-display text-[clamp(32px,5.4vw,42px)] leading-[1.05]">Mantenimiento y soporte técnico</h2>
+      <p className="mt-4 max-w-[600px] text-[15.5px] text-muted">
+        Para garantizar que el sitio se mantenga rápido, seguro y visible a lo largo del tiempo, se requiere un servicio de mantenimiento continuo.
+      </p>
+
+      <div className="mt-6 grid gap-3 sm:grid-cols-3">
+        {[[I.Gauge, 'Rápido', 'Servidores pagos y atención ante cualquier caída.'], [I.ShieldCheck, 'Seguro', 'Certificado SSL y copias de respaldo periódicas.'], [I.Eye, 'Visible', 'Dominio renovado cada año, siempre en línea.']].map(([Icon, t, d]) => (
+          <div key={t} className="flex min-w-0 items-start gap-3 rounded-[18px] bg-sand p-4">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-paper text-sea" aria-hidden="true"><Icon size={18} strokeWidth={1.8} /></span>
+            <div className="min-w-0"><p className="font-semibold">{t}</p><p className="text-[13px] leading-snug text-muted">{d}</p></div>
+          </div>
+        ))}
+      </div>
+
+      <section className="mt-4 rounded-[24px] bg-deep p-6 text-paper sm:p-7" aria-labelledby="cobertura">
+        <div className="grid gap-8 sm:grid-cols-[1fr_1.25fr]">
+          <div className="flex min-w-0 flex-col">
+            <p className="text-[13px] font-semibold text-coral">Cobertura mensual</p>
+            <h3 id="cobertura" className="mt-2 font-display text-[24px] leading-[1.15]">Todo lo necesario para que el portal siga funcionando</h3>
+            <p className="num mt-6 font-display text-[30px] leading-[1.1]">{fmt(MAINT.min)} –<br />{fmt(MAINT.max)}</p>
+            <p className="mt-2 text-[14px] font-semibold text-paper/80">por mes</p>
+            <p className="mt-auto pt-6 text-[13px] leading-snug text-paper/70">El valor final depende del volumen de tráfico del sitio y del peso de las imágenes alojadas.</p>
+          </div>
+          <ul className="m-0 flex list-none flex-col gap-3 p-0">
+            {COVERAGE.map(({ Icon, title, text }) => (
+              <li key={title} className="flex min-w-0 items-start gap-3 rounded-[14px] bg-paper/[0.06] p-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-paper/10 text-paper" aria-hidden="true"><Icon size={19} strokeWidth={1.7} /></span>
+                <div className="min-w-0"><p className="font-semibold">{title}</p><p className="text-[13px] leading-snug text-paper/70">{text}</p></div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-6 rounded-[20px] bg-sand p-6">
+        <div className="min-w-0 max-w-[430px]">
+          <p className="font-display text-[22px] leading-[1.2]">Gracias por considerar esta propuesta.</p>
+          <p className="mt-2 text-[14px] leading-snug text-muted">El prototipo del portal acompaña este documento y puede recorrerse completo, incluido el panel de administración de la Junta.</p>
+        </div>
+        <span className="flex items-center gap-3"><Mark size={40} /><span className="font-display text-[20px] leading-tight">El Cóndor<br /><span className="font-sans text-[13px] text-muted">Río Negro</span></span></span>
+      </div>
+    </Sheet>
+  );
+}
+
+function App() {
+  return (
+    <main className="desk">
+      <Cover />
+      <Benefits />
+      <Investment />
+      <Support />
+    </main>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
