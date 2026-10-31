@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Villa El Cóndor - Portal Turístico</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom Tailwind Configuration for theme colors -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            light: '#48B0F7',
+                            DEFAULT: '#0275D8',
+                            dark: '#01549B',
+                            sand: '#F4E4C1',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Estilos adicionales para suaves transiciones */
+        .hero-bg {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+<body class="font-sans text-gray-800 bg-gray-50 flex flex-col min-h-screen">
+
+    <!-- HEADER / NAVEGACIÓN -->
+    <header class="fixed w-full z-50 bg-white/95 backdrop-blur-sm shadow-md transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-sun text-brand text-3xl"></i>
+                    <span class="font-bold text-2xl tracking-tight text-brand-dark">El Cóndor</span>
+                </div>
+                
+                <!-- Desktop Menu -->
+                <nav class="hidden md:flex space-x-8">
+                    <a href="#inicio" class="text-gray-600 hover:text-brand font-medium transition-colors">Inicio</a>
+                    <a href="#descubri" class="text-gray-600 hover:text-brand font-medium transition-colors">Descubrí</a>
+                    <a href="#servicios" class="text-gray-600 hover:text-brand font-medium transition-colors">Servicios</a>
+                    <a href="#novedades" class="text-gray-600 hover:text-brand font-medium transition-colors">Novedades</a>
+                    <a href="#contacto" class="text-gray-600 hover:text-brand font-medium transition-colors">Contacto</a>
+                </nav>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-btn" class="text-gray-600 hover:text-brand focus:outline-none p-2">
+                        <i class="fa-solid fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu (Hidden by default) -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100 absolute w-full shadow-lg">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 flex flex-col">
+                <a href="#inicio" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-brand hover:bg-gray-50 rounded-md">Inicio</a>
+                <a href="#descubri" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-brand hover:bg-gray-50 rounded-md">Descubrí</a>
+                <a href="#servicios" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-brand hover:bg-gray-50 rounded-md">Servicios</a>
+                <a href="#novedades" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-brand hover:bg-gray-50 rounded-md">Novedades</a>
+                <a href="#contacto" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-brand hover:bg-gray-50 rounded-md">Contacto</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section id="inicio" class="hero-bg h-screen flex items-center justify-center pt-20">
+        <div class="text-center px-4 max-w-4xl mx-auto">
+            <span class="block text-brand-sand font-semibold tracking-wider uppercase mb-2">Junta Vecinal El Cóndor</span>
+            <h1 class="text-5xl md:text-7xl font-bold text-white mb-6 drop-shadow-lg">
+                Descubrí El Cóndor
+            </h1>
+            <p class="text-xl md:text-2xl text-gray-200 mb-10 font-light max-w-2xl mx-auto drop-shadow-md">
+                Sol, playa, acantilados y la colonia de loros barranqueros más grande del mundo te esperan.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="#servicios" class="bg-brand hover:bg-brand-light text-white font-semibold py-4 px-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105">
+                    Planificá tu viaje
+                </a>
+                <a href="#novedades" class="bg-white/20 backdrop-blur-md border border-white/50 hover:bg-white/30 text-white font-semibold py-4 px-8 rounded-full shadow-lg transition-all duration-300">
+                    Ver Novedades
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN DE CATEGORÍAS (SERVICIOS) -->
+    <section id="servicios" class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Todo lo que necesitás</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">Explorá nuestro directorio completo de servicios turísticos. Encontrá el mejor lugar para comer, dormir y disfrutar de la villa.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Tarjeta Gastronomía -->
+                <div class="bg-white rounded-2xl overflow-hidden shadow-md border border-gray-100 card-hover transition-all duration-300 cursor-pointer">
+                    <div class="h-48 overflow-hidden relative">
+                        <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80" alt="Gastronomía" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110" onerror="this.src='https://placehold.co/600x400/e2e8f0/475569?text=Gastronomia'">
+                        <div class="absolute top-4 right-4 bg-white p-3 rounded-full shadow-lg">
+                            <i class="fa-solid fa-utensils text-brand text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Gastronomía</h3>
+                        <p class="text-gray-600 mb-4">Pescados, mariscos, parrilladas y comida rápida. Descubrí los sabores locales frente al mar.</p>
+                        <span class="text-brand font-semibold group-hover:text-brand-dark flex items-center gap-2">
+                            Ver opciones <i class="fa-solid fa-arrow-right text-sm"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Tarjeta Hospedaje -->
+                <div class="bg-white rounded-2xl overflow-hidden shadow-md border border-gray-100 card-hover transition-all duration-300 cursor-pointer">
+                    <div class="h-48 overflow-hidden relative">
+                        <img src="https://images.unsplash.com/photo-1566073171639-66290f0cb108?auto=format&fit=crop&w=600&q=80" alt="Hospedaje" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110" onerror="this.src='https://placehold.co/600x400/e2e8f0/475569?text=Hospedaje'">
+                        <div class="absolute top-4 right-4 bg-white p-3 rounded-full shadow-lg">
+                            <i class="fa-solid fa-bed text-brand text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Hospedaje</h3>
+                        <p class="text-gray-600 mb-4">Hoteles, cabañas, campings y departamentos de alquiler temporal para tu comodidad.</p>
+                        <span class="text-brand font-semibold group-hover:text-brand-dark flex items-center gap-2">
+                            Ver alojamientos <i class="fa-solid fa-arrow-right text-sm"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Tarjeta Excursiones -->
+                <div class="bg-white rounded-2xl overflow-hidden shadow-md border border-gray-100 card-hover transition-all duration-300 cursor-pointer">
+                    <div class="h-48 overflow-hidden relative">
+                        <img src="https://images.unsplash.com/photo-1506197603052-3cc9c3a201bd?auto=format&fit=crop&w=600&q=80" alt="Excursiones" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110" onerror="this.src='https://placehold.co/600x400/e2e8f0/475569?text=Excursiones'">
+                        <div class="absolute top-4 right-4 bg-white p-3 rounded-full shadow-lg">
+                            <i class="fa-solid fa-map-location-dot text-brand text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Excursiones</h3>
+                        <p class="text-gray-600 mb-4">Pesca deportiva, avistaje de aves, faro Río Negro y paseos guiados por los acantilados.</p>
+                        <span class="text-brand font-semibold group-hover:text-brand-dark flex items-center gap-2">
+                            Ver actividades <i class="fa-solid fa-arrow-right text-sm"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN DE NOVEDADES (AUTOGESTIONABLE) -->
+    <section id="novedades" class="py-24 bg-gray-50 border-t border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-12">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-2">Novedades y Eventos</h2>
+                    <p class="text-gray-600">Enterate de las últimas noticias publicadas por la Junta Vecinal.</p>
+                </div>
+                <button class="mt-4 md:mt-0 text-brand font-semibold hover:underline">Ver todas las noticias</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Noticia 1 -->
+                <article class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+                    <img src="https://placehold.co/400x250/e2e8f0/475569?text=Festival+del+Viento" alt="Noticia" class="w-full h-40 object-cover">
+                    <div class="p-5">
+                        <span class="text-xs font-semibold text-brand uppercase tracking-wider">Eventos</span>
+                        <h4 class="text-lg font-bold text-gray-900 mt-1 mb-2">Se acerca el Festival del Viento</h4>
+                        <p class="text-gray-600 text-sm line-clamp-3 mb-4">Preparate para tres días de kitesurf, parapente y carrovelismo en nuestras amplias playas...</p>
+                        <span class="text-xs text-gray-400"><i class="fa-regular fa-calendar mr-1"></i> 15 Oct, 2026</span>
+                    </div>
+                </article>
+                
+                <!-- Noticia 2 -->
+                <article class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+                    <img src="https://placehold.co/400x250/e2e8f0/475569?text=Limpieza+de+Playa" alt="Noticia" class="w-full h-40 object-cover">
+                    <div class="p-5">
+                        <span class="text-xs font-semibold text-green-600 uppercase tracking-wider">Comunidad</span>
+                        <h4 class="text-lg font-bold text-gray-900 mt-1 mb-2">Campaña de Limpieza Costera</h4>
+                        <p class="text-gray-600 text-sm line-clamp-3 mb-4">La Junta Vecinal convoca a todos los vecinos a participar de la jornada de limpieza este sábado.</p>
+                        <span class="text-xs text-gray-400"><i class="fa-regular fa-calendar mr-1"></i> 10 Oct, 2026</span>
+                    </div>
+                </article>
+
+                <!-- Noticia 3 -->
+                <article class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+                    <img src="https://placehold.co/400x250/e2e8f0/475569?text=Nuevo+Mirador" alt="Noticia" class="w-full h-40 object-cover">
+                    <div class="p-5">
+                        <span class="text-xs font-semibold text-brand uppercase tracking-wider">Obras</span>
+                        <h4 class="text-lg font-bold text-gray-900 mt-1 mb-2">Inauguración del Nuevo Mirador</h4>
+                        <p class="text-gray-600 text-sm line-clamp-3 mb-4">Un nuevo punto panorámico ha sido habilitado para observar a los loros barranqueros de forma segura.</p>
+                        <span class="text-xs text-gray-400"><i class="fa-regular fa-calendar mr-1"></i> 05 Oct, 2026</span>
+                    </div>
+                </article>
+
+                <!-- Banner CMS Info (Solo para demo) -->
+                <div class="bg-brand-light/10 rounded-xl border border-brand-light/30 border-dashed flex flex-col items-center justify-center p-6 text-center">
+                    <i class="fa-solid fa-laptop-code text-brand text-4xl mb-3"></i>
+                    <h4 class="font-bold text-brand-dark mb-2">Panel Autogestionable</h4>
+                    <p class="text-sm text-gray-600">En la versión final, ustedes podrán agregar, editar o borrar estas noticias desde un panel de control muy fácil de usar.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer id="contacto" class="bg-gray-900 text-white pt-16 pb-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
+                <!-- Info Institucional -->
+                <div>
+                    <div class="flex items-center gap-2 mb-6">
+                        <i class="fa-solid fa-sun text-brand-light text-2xl"></i>
+                        <span class="font-bold text-xl">Junta Vecinal El Cóndor</span>
+                    </div>
+                    <p class="text-gray-400 text-sm mb-6">Trabajando para potenciar el turismo y mejorar la calidad de vida en nuestra querida villa balnearia.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-brand transition-colors">
+                            <i class="fa-brands fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-brand transition-colors">
+                            <i class="fa-brands fa-instagram"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-brand transition-colors">
+                            <i class="fa-brands fa-whatsapp"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Enlaces Rápidos -->
+                <div>
+                    <h4 class="text-lg font-bold mb-6 border-b border-gray-700 pb-2 inline-block">Enlaces Rápidos</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#inicio" class="text-gray-400 hover:text-white transition-colors">Inicio</a></li>
+                        <li><a href="#servicios" class="text-gray-400 hover:text-white transition-colors">Directorio de Servicios</a></li>
+                        <li><a href="#novedades" class="text-gray-400 hover:text-white transition-colors">Últimas Noticias</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Sumá tu comercio</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contacto -->
+                <div>
+                    <h4 class="text-lg font-bold mb-6 border-b border-gray-700 pb-2 inline-block">Contacto</h4>
+                    <ul class="space-y-4 text-gray-400">
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-location-dot mt-1 text-brand-light"></i>
+                            <span>Balneario El Cóndor<br>Río Negro, Argentina</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i class="fa-solid fa-envelope text-brand-light"></i>
+                            <span>contacto@elcondor.com.ar</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i class="fa-solid fa-phone text-brand-light"></i>
+                            <span>+54 2920 12-3456</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Copyright -->
+            <div class="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center text-gray-500 text-sm">
+                <p>&copy; 2026 Junta Vecinal El Cóndor. Todos los derechos reservados.</p>
+                <p class="mt-2 md:mt-0">Diseño por <span class="text-brand-light">Web del Condor</span></p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- INTERACTIVIDAD JS -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Menú Móvil
+            const btn = document.getElementById('mobile-menu-btn');
+            const menu = document.getElementById('mobile-menu');
+            const menuLinks = menu.querySelectorAll('a');
+
+            btn.addEventListener('click', () => {
+                menu.classList.toggle('hidden');
+            });
+
+            // Cerrar menú móvil al hacer click en un enlace
+            menuLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    menu.classList.add('hidden');
+                });
+            });
+
+            // Cambiar fondo del navbar al scrollear
+            const navbar = document.getElementById('navbar');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) {
+                    navbar.classList.add('shadow-md', 'bg-white/95');
+                    navbar.classList.remove('bg-transparent');
+                } else {
+                    // Si se desea que sea transparente arriba, se pueden ajustar estas clases.
+                    // Por ahora se mantiene blanco para asegurar legibilidad del logo.
+                }
+            });
+        });
+    </script>
+</body>
+</html>
